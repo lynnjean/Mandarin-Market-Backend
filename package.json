@@ -1,0 +1,24 @@
+{
+  "name": "mandarin",
+  "version": "1.0.0",
+  "description": "감귤마켓 프로토타입",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weniv/mandarin.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/weniv/mandarin/issues"
+  },
+  "homepage": "https://github.com/weniv/mandarin#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mongoose": "^6.0.12"
+  }
+}
