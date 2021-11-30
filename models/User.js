@@ -1,7 +1,8 @@
 var mongoose=require('mongoose');
 var uniqueValidator=require('mongoose-unique-validator');
 var crypto=require('crypto');
-var  jwt=require('jsonwebtoken');
+var jwt=require('jsonwebtoken');
+var secret=require('../config').secret;
 
 var UserSchema = new mongoose.Schema({
     username:{type:String, index:true},
@@ -10,7 +11,7 @@ var UserSchema = new mongoose.Schema({
     intro:{type:String},
     hash:{type:String},
     salt:{type:String}
-})
+},{timestamps:true});
 
 UserSchema.plugin(uniqueValidator,{message:'is already token'})
 
@@ -26,22 +27,27 @@ UserSchema.methods.setPassword = function(password){
 
 UserSchema.methods.generateJWT=()=>{
     var today=new Date()
-    var exp=new  Date(today)
+    var exp=new Date(today)
     exp.setDate(today.getDate()+60)
 
     return jwt.sign({
         id:this._id,
         username:this.username,
         exp:parseInt(exp.getTime()/1000),
-    });
+    },secret)
 };
+
+// UserSchema.methods.refrashJWT=()=>{
+//     jwt.sign({},secret)
+// }
 
 UserSchema.method.toAuthJson=()=>{
     return {
         username:this.username,
         email:this.email,
         accountname:this.accountname,
-        token:this.generateJWT()
+        token:this.generateJWT(),
+        // refrashToken:this.refrashJWT()
     }
 }
 
