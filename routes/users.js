@@ -1,23 +1,22 @@
 var mongoose=require('mongoose');
 var express=require('express');
-var router=express.Router();
 var passport=require('passport');
 var User=mongoose.model('User');
 var auth=require('./auth');
+var Jwt=require('jsonwebtoken');
 
-// const secret=require('../config').secret;
-// var jwt=require('jsonwebtoken');
-// const { verify } = require('crypto');
-// const { RedisClient } = require('redis');
+var secret=require('../config').secret;
+var jwt=require('jsonwebtoken');
+
+var router=express.Router();
 
 var list=(req,res,next)=>{
-    // console.log(req.payload, ": payload")
-    User.findById(req.body.id).then((user)=>{
+    User.findById(req.payload.id).then((user)=>{
         if (!user){
-            return res.sendStatus(401);
+            return res.status(401);
         }
-        return res.send(user);
         // return res.json({user:user.toAuthJSON()});
+        return res.json(user);
     }).catch(next);
 };
 
@@ -29,17 +28,17 @@ var login=(req,res,next)=>{
     passport.authenticate('local',{session:false}, (err,user,info)=>{
         if (err) return next(err);
         if (user){
-            user.token=user.generateJWT();
-            // user.refrashToken=user.refrashJWT();
+            var token=user.generateJWT();
+            var refreshToken=user.refreshJWT();
+
             return res.json({
-                _id:user._id,
+                id:user.id,
                 username:user.username,
                 email:user.email,
                 accountname:user.accountname,
-                token:user.generateJWT(),
-                // refrashToken=user.refrashJWT()
+                token:token,
+                refreshToken:refreshToken
             });
-            // redisClient.set(user.id,refrashToken)
         }else {
             return res.status(422).json(info);
         }
@@ -52,29 +51,43 @@ var create=(req,res,next)=>{
     user.username=req.body.user.username;
     user.accountname = req.body.user.accountname;
     user.email=req.body.user.email;
+    user.intro=req.body.user.intro;
     user.setPassword(req.body.user.password);
     
     console.log(user);
     user.save().then(()=>{
         console.log(("잘옴?"));
-        // return res.json({user:user.toAuthJSON()});
-        return res.send("잘옴")
+        return res.json(user)
+        // return res.json({user:req.user.toAuthJSON()});
     }).catch(next);
 };
 
-var logout=(req,res,next)=>{
-    User.findOneAndUpdate({_id:req.user.id},{token:""},(err,user)=>{
-        if (err) return res.json({sucess:false,err})
-        res.clearCookie("x_auth");
-        ctx.cookies.set('access_token');
-        return res.status(200).send({sucess:true});
+var refreshAuth=(req,res)=>{
+    let refreshToken=req.body.refreshToken;
+
+    if(!refreshToken){
+        console.log(error)
+        return res.status(401);
+    }
+
+    Jwt.verify(refreshToken,secret,(error,user)=>{
+        if(error){
+            console.log(error);
+            return res.status(403);
+        }
+
+        var token=new User().generateJWT();
+        res.json({token});
+
     });
-};
+    return token;
+}
 
 
 router.get('/user',auth.required, list);
 router.post('/user',create);
 router.post('/user/login',login);
-router.get('/user/logout',logout);
+router.post('/refresh',refreshAuth);
+
 
 module.exports = router;
