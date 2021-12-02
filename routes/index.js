@@ -1,8 +1,11 @@
 var express=require('express');
 
 var router=express.Router();
+var auth=require('./auth')
+
 
 router.use('/',require('./users'));
+router.use('/post' ,require('./post')) 
 router.use('/profiles',require('./profiles'));
 
 router.use((err,req,res,next)=>{
