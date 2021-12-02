@@ -18,8 +18,15 @@ app.use(express.json())
 
 app.use(require('method-override')());
 
-mongoose.connect('mongodb://localhost/user');
+mongoose.connect('mongodb://127.0.0.1:27017/test');
+db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error: '));
+db.once('open', function callback() {
+    console.log('conn');
+});
+
 require('./models/User')
+require('./models/Post')
 require('./config/passport')
 
 app.use(require('./routes'))
