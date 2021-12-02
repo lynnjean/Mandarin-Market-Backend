@@ -1,23 +1,31 @@
 var mongoose=require('mongoose');
-var autoIncrement = require('mongoose-auto-increment');
-var User = mongoose.model('user')
+
+var autoIncrement = require('mongoose-sequence');
+var User = mongoose.model('User')
 
 var PostSchema = new mongoose.Schema({
     title:String,
     contentId:Number,
+    content:String,
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     // comments:{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'},
-    favoritesCount: {type: Number, default: 0},
     heartCount:{type:Number, default: 0},
 },{timestamps:true})
 
-PostSchema.plugin(autoIncrement,{
-    model:'Post',
-    field:'contentId',
-    startAt: 0,
-    increment: 1
-})
+// PostSchema.plugin(autoIncrement,{
+// })
 
-
+PostSchema.methods.toJSONFor = function(user){
+    return {
+        contentId:this.contentId,
+        title: this.title,
+        createdAt: this.createdAt,
+        updatedAt: this.updatedAt,
+        // favorited: user ? user.isFavorite(this._id) : false,
+        favoritesCount: this.favoritesCount,
+        heartCount:this.heartCount,
+        author: this.author
+    };
+  };
 
 mongoose.model('Post',PostSchema)

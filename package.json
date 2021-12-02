@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
+    "dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -28,6 +29,7 @@
     "method-override": "^3.0.0",
     "methods": "^1.1.2",
     "mongoose": "^6.0.12",
+    "mongoose-sequence": "^5.3.1",
     "mongoose-unique-validator": "^3.0.0",
     "morgan": "^1.10.0",
     "passport": "^0.5.0",
