@@ -16,11 +16,12 @@ app.use(cors());
 app.use(express.urlencoded({extended:false}));
 app.use(express.json())
 
-app.use(require('method-override'));
+app.use(require('method-override')());
 
 mongoose.connect('mongodb://localhost/user');
 require('./models/User')
+require('./config/passport')
 
-
+app.use(require('./routes'))
 
 app.listen(5050,()=>{console.log('start server')});
