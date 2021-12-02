@@ -8,7 +8,7 @@ var PostSchema = new mongoose.Schema({
     contentId:Number,
     content:String,
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    // comments:{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'},
+    comments:[{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}],
     heartCount:{type:Number, default: 0},
 },{timestamps:true})
 
@@ -21,10 +21,9 @@ PostSchema.methods.toJSONFor = function(user){
         title: this.title,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
-        // favorited: user ? user.isFavorite(this._id) : false,
-        favoritesCount: this.favoritesCount,
+        hearted: user ? user.inhearts(this._id) : false,
         heartCount:this.heartCount,
-        author: this.author
+        author: this.author.toProfileJSONFor(user)
     };
   };
 

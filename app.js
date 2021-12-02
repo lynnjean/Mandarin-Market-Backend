@@ -27,6 +27,7 @@ db.once('open', function callback() {
 
 require('./models/User')
 require('./models/Post')
+require('./models/Comment');
 require('./config/passport')
 
 app.use(require('./routes'))
