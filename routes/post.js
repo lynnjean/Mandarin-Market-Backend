@@ -18,7 +18,16 @@ router.param('post', async function(req, res, next, postId) {
         return next();
       }).catch(next);
   });
+  router.param('user', async function(req, res, next, userId) {
+     const user = await User.findById(userId)
+     if(!user){
+       return res.status(404).send("존재하지않는 유저입니다.")
+     }
+     req.user = user
+    return next()
+  })
   
+
 const create = async function createPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = new Post(req.body.post)
@@ -32,6 +41,10 @@ const getPostById = async function getPost(req, res, next) {
   await req.post.populate('author')
   console.log(req.post)
   return res.json({post: req.post.toJSONFor(user)})
+}
+const getPostByUserId = async function getPostByuserId(req, res, next) {
+    const posts = await Post.find({author:req.user}).populate("author")
+    return res.json({posts:posts.map((post)=>post.toJSONFor())})
 }
 const update = async function updatePost(req, res, next){
     if(req.payload.id.toString() === req.post.author._id.toString()){
@@ -65,7 +78,7 @@ router.post('/', create);
 router.get('/:post', getPostById)
 router.delete('/:post', remove);
 router.put('/:post', update);
-
+router.get('/search/:user', getPostByUserId)
 
 
 

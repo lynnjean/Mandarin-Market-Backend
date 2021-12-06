@@ -14,7 +14,6 @@ var PostSchema = new mongoose.Schema({
 // })
 
 PostSchema.methods.toJSONFor = function(user){
-    console.log(user,"?");
     return {
         id: this._id,
         content:this.content,
