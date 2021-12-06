@@ -7,6 +7,7 @@ const auth = require('./auth');
 var router=express.Router();
 
 router.param('post', function(req, res, next, postId) {
+    console.log("middle", postId);
     Post.findOne({ _id: postId})
       .populate('author')
       .then(function (post) {
@@ -19,6 +20,7 @@ router.param('post', function(req, res, next, postId) {
   });
   
 router.get('/:post', auth.optional, function(req, res, next) {
+    console.log("ssssss");
     Promise.all([
         req.payload ? User.findById(req.payload.id) : null,
         req.post.populate('author')
@@ -33,12 +35,18 @@ const create = async function createPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = new Post(req.body.post)
     post.author = user
-    post.save()
+    await post.save()
     return res.json({post: post.toJSONFor(user)})
 }
 
 const update = async function updatePost(req, res, next){
-    const user = await User.findById(req.payload.id)
+    if(req.payload.id.toString() === req.post.author._id.toString()){
+        await Post.findByIdAndUpdate(req.post._id,req.body.post)
+        const user = await User.findById(req.payload.id)
+        const post = await Post.findById(req.post.id).populate('author')
+        return res.json({post: post.toJSONFor(user)})
+    }
+    return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
 }
 router.use(auth.required)
 
@@ -53,7 +61,8 @@ router.get('/', async (req,res,)=>{
 })
 
 router.post('/', create);
-router.put('/', update)
+router.put('/:post', update);
+
 
 
 router.param('comment', function(req, res, next, id) {
