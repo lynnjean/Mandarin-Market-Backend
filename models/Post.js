@@ -14,12 +14,13 @@ var PostSchema = new mongoose.Schema({
 // })
 
 PostSchema.methods.toJSONFor = function(user){
+    console.log(user,"?");
     return {
         id: this._id,
         content:this.content,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
-        hearted: user ? user.inhearts(this._id) : false,
+        hearted: user ? user.inhearts(user._id) : false,
         heartCount:this.heartCount,
         author: this.author.toProfileJSONFor(this.author)
     };

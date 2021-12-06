@@ -6,12 +6,12 @@ var express=require('express');
 const auth = require('./auth');
 var router=express.Router();
 
-router.param('post', function(req, res, next, postId) {
+router.param('post', async function(req, res, next, postId) {
     console.log("middle", postId);
     Post.findOne({ _id: postId})
       .populate('author')
       .then(function (post) {
-        if (!post) { return res.sendStatus(404); }
+        if (!post) { return res.status(404).send("존재하지않는 게시글입니다."); }
   
         req.post = post;
   
@@ -19,18 +19,6 @@ router.param('post', function(req, res, next, postId) {
       }).catch(next);
   });
   
-router.get('/:post', auth.optional, function(req, res, next) {
-    console.log("ssssss");
-    Promise.all([
-        req.payload ? User.findById(req.payload.id) : null,
-        req.post.populate('author')
-    ]).then(function(results){
-        console.log("1");
-        var user = results[0];
-        return res.json({post: req.post.toJSONFor(user)});
-    }).catch(next);
-});
-
 const create = async function createPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = new Post(req.body.post)
@@ -38,7 +26,13 @@ const create = async function createPost(req, res, next) {
     await post.save()
     return res.json({post: post.toJSONFor(user)})
 }
-
+const getPostById = async function getPost(req, res, next) {
+  console.log("ssssss");
+  const user = await User.findById(req.payload.id)
+  await req.post.populate('author')
+  console.log(req.post)
+  return res.json({post: req.post.toJSONFor(user)})
+}
 const update = async function updatePost(req, res, next){
     if(req.payload.id.toString() === req.post.author._id.toString()){
         await Post.findByIdAndUpdate(req.post._id,req.body.post)
@@ -47,6 +41,14 @@ const update = async function updatePost(req, res, next){
         return res.json({post: post.toJSONFor(user)})
     }
     return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
+}
+
+const remove = async function removePost(req, res,){
+  if(req.payload.id.toString() === req.post.author._id.toString()){
+      await Post.findByIdAndDelete(req.post._id,req.body.post)
+      return res.send("삭제되었습니다.")
+  }
+  return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
 }
 router.use(auth.required)
 
@@ -59,9 +61,11 @@ router.get('/', async (req,res,)=>{
         posts,
     })
 })
-
 router.post('/', create);
+router.get('/:post', getPostById)
+router.delete('/:post', remove);
 router.put('/:post', update);
+
 
 
 
