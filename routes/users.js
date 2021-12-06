@@ -83,11 +83,21 @@ var refreshAuth=(req,res)=>{
     return token;
 }
 
+var searchUser = (req, res)=>{
+    var keyword = req.query.keyword
+    var options = [{username: new RegExp(keyword)}, {accountname: new RegExp(keyword)}]
+    User.find({$or:options}).then(
+        (result)=>{
+            res.json(result.map((user)=>{return user.toProfileJSONFor()}))
+        }
+    )
+
+}
 
 router.get('/user',auth.required, list);
 router.post('/user',create);
 router.post('/user/login',login);
 router.post('/refresh',refreshAuth);
-
+router.get('/searchuser',searchUser)
 
 module.exports = router;
