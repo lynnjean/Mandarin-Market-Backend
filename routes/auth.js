@@ -35,7 +35,7 @@ var auth={
     optional:jwt({
         secret:secret,
         userProperty:'payload',
-        credentialsRequired:false,
+        credentialsRequired:false, //권한 요구할 필요 없음
         getToken:getTokenFromHeader,
         algorithms: ['sha1', 'RS256', 'HS256'],
         expiresIn:'1h'
