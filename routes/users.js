@@ -90,4 +90,25 @@ router.post('/user/login',login);
 router.post('/refresh',refreshAuth);
 
 
+router.put('/user', auth.required,function(req,res,next){
+    User.findById(req.payload.id).then(function(user){
+        if (!user) return res.status(401);
+
+        if(typeof req.body.user.username!=='undefined'){
+            user.username=req.body.user.username;
+        }
+        if(typeof req.body.user.accountname!=='undefined'){
+            user.accountname=req.body.user.accountname;
+        }
+        if(typeof req.body.user.intro!=='undefined'){
+            user.intro=req.body.user.intro;
+        }
+
+        return User.findOneAndUpdate({_id:req.payload.id},user).then(function(){
+            console.log(user)
+            return res.json({user:user.toProfileJSONFor(user)});
+        })
+    })
+})
+
 module.exports = router;

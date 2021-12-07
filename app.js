@@ -19,8 +19,11 @@ app.use(express.json())
 app.use(require('method-override')());
 
 mongoose.connect('mongodb://localhost/user');
-require('./models/User')
-require('./config/passport')
+require('./models/User');
+require('./models/Post');
+require('./models/Comment');
+require('./models/Product')
+require('./config/passport');
 
 app.use(require('./routes'))
 

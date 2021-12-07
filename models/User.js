@@ -6,10 +6,12 @@ var secret=require('../config').secret;
 
 var UserSchema = new mongoose.Schema({
     username:{type:String, index:true},
+    image:{type:String},
     email:{type:String, lowercase:true, unique:true, required:[true, "필수 입력 사항입니다."], match: [/\S+@\S+\.\S+/, '잘못된 이메일 형식입니다.'],index:true},
     accountname:{type:String, unique:true, required:[true, "필수 입력 사항입니다."],index:true},
     intro:{type:String},
     hearts:[{type:mongoose.Schema.Types.ObjectId,ref:'Post'}],
+    following:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
     hash:{type:String},
     salt:{type:String}
 },{timestamps:true});
@@ -33,7 +35,6 @@ UserSchema.methods.generateJWT= function (){
 
     return jwt.sign({
         id:this._id,
-        username:this.username,
         exp:parseInt(exp.getTime()/1000),
     },secret)
 };
@@ -47,6 +48,7 @@ UserSchema.methods.toAuthJson= function(user){
         username:this.username,
         email:this.email,
         accountname:this.accountname,
+        intro:this.intro,
         token:this.generateJWT(),
         refreshToken:this.refreshJWT()
     }
@@ -54,28 +56,49 @@ UserSchema.methods.toAuthJson= function(user){
 
 UserSchema.methods.toProfileJSONFor= function(user){
     return {
+        id:this._id,
         username:this.username,
         accountname:this.accountname,
-        intro:this.intro
+        intro:this.intro,
+        follower:this.following,
+        following:user?user.isfollowing(this._id):false
     }
 }
 
-UserSchema.method.heart=function(id){
+UserSchema.methods.heart=function(id){
     if(this.hearts.indexOf(id)===-1){
         this.hearts.push(id);
-    }return this.save()
+    }
+    return this.updateOne({hearts:id},);
 }
 
 UserSchema.methods.unhearts=function(id){
     this.hearts.remove(id);
-    return this.save();
+    return this.updateOne({hearts:this.hearts},);
 }
 
-UserSchema.methods.inhearts=function(id){
+UserSchema.methods.ishearts=function(id){
     return this.hearts.some(function(heartId){
-        return heartId.toString()==id.toStfing();
+        return heartId.toString()==id.toString();
     });
 }
 
+UserSchema.methods.follow=function(id){
+    if(this.following.indexOf(id)===-1){
+        this.following.push(id);
+    }
+    return this.updateOne({_id:id},);
+}
+
+UserSchema.methods.unfollows=function(id){
+    this.following.remove(id);
+    return this.updateOne({_id:id},);
+}
+
+UserSchema.methods.isfollowing=function(id){
+    return this.following.some(function(followId){
+        return followId.toString()==id.toString();
+    });
+}
 
 mongoose.model('User',UserSchema);
