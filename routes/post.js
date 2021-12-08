@@ -18,35 +18,47 @@ router.param('post', async function(req, res, next, postId) {
         return next();
       }).catch(next);
   });
-  router.param('user', async function(req, res, next, userId) {
-     const user = await User.findById(userId)
-     if(!user){
-       return res.status(404).send("존재하지않는 유저입니다.")
-     }
-     req.user = user
-    return next()
-  })
+router.param('user', async function(req, res, next, userId) {
+    const user = await User.findById(userId)
+    if(!user){
+      return res.status(404).send("존재하지않는 유저입니다.")
+    }
+    req.user = user
+  return next()
+})
   
 
-const create = async function createPost(req, res, next) {
+const createPost = async function createPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = new Post(req.body.post)
     post.author = user
     await post.save()
     return res.json({post: post.toJSONFor(user)})
 }
+
+const getPosts = async function getPosts(req,res,){
+  const limit = req.query.limit ? Number(req.query.limit):10 
+  const skip = req.query.skip ? Number(req.query.skip):0
+  const posts = await Post.find({}).sort({createdAt:'descending'}).skip(skip).limit(limit).populate('author');
+  res.status('200').json({
+      status: 'ok',
+      data: posts.length,
+      posts,
+  })
+}
 const getPostById = async function getPost(req, res, next) {
-  console.log("ssssss");
   const user = await User.findById(req.payload.id)
   await req.post.populate('author')
   console.log(req.post)
   return res.json({post: req.post.toJSONFor(user)})
 }
 const getPostByUserId = async function getPostByuserId(req, res, next) {
-    const posts = await Post.find({author:req.user}).populate("author")
+    const limit = req.query.limit ? Number(req.query.limit):10 
+    const skip = req.query.skip ? Number(req.query.skip):0
+    const posts = await Post.find({author:req.user}).sort({createdAt:'descending'}).skip(skip).limit(limit).populate("author")
     return res.json({posts:posts.map((post)=>post.toJSONFor())})
 }
-const update = async function updatePost(req, res, next){
+const updatePost = async function updatePost(req, res, next){
     if(req.payload.id.toString() === req.post.author._id.toString()){
         await Post.findByIdAndUpdate(req.post._id,req.body.post)
         const user = await User.findById(req.payload.id)
@@ -56,7 +68,7 @@ const update = async function updatePost(req, res, next){
     return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
 }
 
-const remove = async function removePost(req, res,){
+const removePost = async function removePost(req, res,){
   if(req.payload.id.toString() === req.post.author._id.toString()){
       await Post.findByIdAndDelete(req.post._id,req.body.post)
       return res.send("삭제되었습니다.")
@@ -65,37 +77,30 @@ const remove = async function removePost(req, res,){
 }
 router.use(auth.required)
 
-router.get('/', async (req,res,)=>{
-    const posts = await Post.find({}).sort({createdAt:'descending'}).populate('author');
-    console.log(posts);
-    res.status('200').json({
-        status: 'ok',
-        data: posts.length,
-        posts,
-    })
-})
-router.post('/', create);
+router.get('/', getPosts)
+router.post('/', createPost);
 router.get('/:post', getPostById)
-router.delete('/:post', remove);
-router.put('/:post', update);
+router.delete('/:post', removePost);
+router.put('/:post', updatePost);
 router.get('/search/:user', getPostByUserId)
 
 
 
-router.param('comment', function(req, res, next, id) {
-    Comment.findById(id).then(function(comment){
-      if(!comment) { return res.sendStatus(404); }
-  
-      req.comment = comment;
-  
-      return next();
-    }).catch(next);
+router.param('comment', async function(req, res, next, id) {
+    const comment = Comment.findById(id)
+    if(!comment){
+      return res.status(404).send("댓글이 존재하지 않습니다.")
+    }
+    req.comment = comment;
+    return next()
   });
 
-router.get('/:post/comments', function(req, res, next){
-    console.log(req.post);
-    Promise.resolve(req.payload ? User.findById(req.payload.id) : null).then(function(user){
-      return req.post.populate({
+router.get('/:post/comments', async function(req, res, next){
+    const limit = req.query.limit ? Number(req.query.limit):10 
+    const skip = req.query.skip ? Number(req.query.skip):0
+
+    const user = await User.findById(req.payload.id)
+    const post = await req.post.limit(limit).skip(skip).populate({
         path: 'comments',
         populate: {
           path: 'author'
@@ -105,17 +110,15 @@ router.get('/:post/comments', function(req, res, next){
             createdAt: 'desc'
           }
         }
-      }).then(function(post) {
-        return res.json({comments: req.post.comments.map(function(comment){
+      })
+    return res.json({comments: post.comments.map(function(comment){
           return comment.toJSONFor(user);
-        })});
-      });
-    }).catch(next);
+    })});
   });
 
 
 router.post('/:post/comments', function(req, res, next) {
-    console.log("test")
+
     User.findById(req.payload.id).then(function(user){
     if(!user){ return res.sendStatus(401); }
 
@@ -125,7 +128,6 @@ router.post('/:post/comments', function(req, res, next) {
 
     return comment.save().then(function(){
     req.post.comments.push(comment);
-    console.log("?");
 
     return req.post.save().then(function(post) {
         res.json({comment: comment.toJSONFor(user)});
