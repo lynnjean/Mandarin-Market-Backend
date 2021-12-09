@@ -19,7 +19,7 @@ PostSchema.methods.toJSONFor = function(user){
         content:this.content,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
-        hearted: user ? user.inhearts(this._id) : false,
+        hearted: user ? user.inhearts(user._id) : false,
         heartCount:this.heartCount,
         author: this.author.toProfileJSONFor(this.author)
     };

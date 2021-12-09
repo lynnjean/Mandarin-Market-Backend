@@ -4,34 +4,32 @@ var User = mongoose.model('User')
 var Comment = mongoose.model('Comment');
 var express=require('express');
 const auth = require('./auth');
+const { post } = require('./profiles');
 var router=express.Router();
 
-router.param('post', function(req, res, next, postId) {
+router.param('post', async function(req, res, next, postId) {
     console.log("middle", postId);
     Post.findOne({ _id: postId})
       .populate('author')
       .then(function (post) {
-        if (!post) { return res.sendStatus(404); }
+        if (!post) { return res.status(404).send("존재하지않는 게시글입니다."); }
   
         req.post = post;
   
         return next();
       }).catch(next);
   });
+router.param('user', async function(req, res, next, userId) {
+    const user = await User.findById(userId)
+    if(!user){
+      return res.status(404).send("존재하지않는 유저입니다.")
+    }
+    req.user = user
+  return next()
+})
   
-router.get('/:post', auth.optional, function(req, res, next) {
-    console.log("ssssss");
-    Promise.all([
-        req.payload ? User.findById(req.payload.id) : null,
-        req.post.populate('author')
-    ]).then(function(results){
-        console.log("1");
-        var user = results[0];
-        return res.json({post: req.post.toJSONFor(user)});
-    }).catch(next);
-});
 
-const create = async function createPost(req, res, next) {
+const createPost = async function createPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = new Post(req.body.post)
     post.author = user
@@ -39,7 +37,29 @@ const create = async function createPost(req, res, next) {
     return res.json({post: post.toJSONFor(user)})
 }
 
-const update = async function updatePost(req, res, next){
+const getPosts = async function getPosts(req,res,){
+  const limit = req.query.limit ? Number(req.query.limit):10 
+  const skip = req.query.skip ? Number(req.query.skip):0
+  const posts = await Post.find({}).sort({createdAt:'descending'}).skip(skip).limit(limit).populate('author');
+  res.status('200').json({
+      status: 'ok',
+      data: posts.length,
+      posts,
+  })
+}
+const getPostById = async function getPost(req, res, next) {
+  const user = await User.findById(req.payload.id)
+  await req.post.populate('author')
+  console.log(req.post)
+  return res.json({post: req.post.toJSONFor(user)})
+}
+const getPostByUserId = async function getPostByuserId(req, res, next) {
+    const limit = req.query.limit ? Number(req.query.limit):10 
+    const skip = req.query.skip ? Number(req.query.skip):0
+    const posts = await Post.find({author:req.user}).sort({createdAt:'descending'}).skip(skip).limit(limit).populate("author")
+    return res.json({posts:posts.map(post=>post.toJSONFor())})
+}
+const updatePost = async function updatePost(req, res, next){
     if(req.payload.id.toString() === req.post.author._id.toString()){
         await Post.findByIdAndUpdate(req.post._id,req.body.post)
         const user = await User.findById(req.payload.id)
@@ -48,37 +68,49 @@ const update = async function updatePost(req, res, next){
     }
     return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
 }
+
+const removePost = async function removePost(req, res,){
+  if(req.payload.id.toString() === req.post.author._id.toString()){
+      await Post.findByIdAndDelete(req.post._id,req.body.post)
+      return res.send("삭제되었습니다.")
+  }
+  return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
+}
+const getFeed = async function getPostByFollowing(req,res){
+  const limit = req.query.limit ? Number(req.query.limit):10 
+  const skip = req.query.skip ? Number(req.query.skip):0
+  const user = User.findById(rea.payload.id)
+  const posts = await Post.find({ author:{$in: user.following}}).sort({createdAt:'descending'}).limit(limit).skip(skip).populate('author')
+  return res.status.json({posts: posts.map(post=>post.toJSONFor())})
+}
+
+
 router.use(auth.required)
-
-router.get('/', async (req,res,)=>{
-    const posts = await Post.find({}).sort({createdAt:'descending'}).populate('author');
-    console.log(posts);
-    res.status('200').json({
-        status: 'ok',
-        data: posts.length,
-        posts,
-    })
-})
-
-router.post('/', create);
-router.put('/:post', update);
+router.get('/', getPosts)
+router.post('/', createPost);
+router.get('/:post', getPostById)
+router.delete('/:post', removePost);
+router.put('/:post', updatePost);
+router.get('/search/:user', getPostByUserId)
+router.get('/feed',getFeed)
 
 
 
-router.param('comment', function(req, res, next, id) {
-    Comment.findById(id).then(function(comment){
-      if(!comment) { return res.sendStatus(404); }
-  
-      req.comment = comment;
-  
-      return next();
-    }).catch(next);
+router.param('comment', async function(req, res, next, id) {
+    const comment = Comment.findById(id)
+    if(!comment){
+      return res.status(404).send("댓글이 존재하지 않습니다.")
+    }
+    req.comment = comment;
+    return next()
   });
 
-router.get('/:post/comments', function(req, res, next){
-    console.log(req.post);
-    Promise.resolve(req.payload ? User.findById(req.payload.id) : null).then(function(user){
-      return req.post.populate({
+router.get('/:post/comments', async function(req, res, next){
+    const limit = req.query.limit ? Number(req.query.limit):10 
+    const skip = req.query.skip ? Number(req.query.skip):0
+
+    const user = await User.findById(req.payload.id)
+    const post = await req.post.limit(limit).skip(skip).populate({
         path: 'comments',
         populate: {
           path: 'author'
@@ -88,17 +120,15 @@ router.get('/:post/comments', function(req, res, next){
             createdAt: 'desc'
           }
         }
-      }).then(function(post) {
-        return res.json({comments: req.post.comments.map(function(comment){
+      })
+    return res.json({comments: post.comments.map(function(comment){
           return comment.toJSONFor(user);
-        })});
-      });
-    }).catch(next);
+    })});
   });
 
 
 router.post('/:post/comments', function(req, res, next) {
-    console.log("test")
+
     User.findById(req.payload.id).then(function(user){
     if(!user){ return res.sendStatus(401); }
 
@@ -108,7 +138,6 @@ router.post('/:post/comments', function(req, res, next) {
 
     return comment.save().then(function(){
     req.post.comments.push(comment);
-    console.log("?");
 
     return req.post.save().then(function(post) {
         res.json({comment: comment.toJSONFor(user)});
