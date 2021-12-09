@@ -4,6 +4,7 @@ var User = mongoose.model('User')
 var Comment = mongoose.model('Comment');
 var express=require('express');
 const auth = require('./auth');
+const { post } = require('./profiles');
 var router=express.Router();
 
 router.param('post', async function(req, res, next, postId) {
@@ -56,7 +57,7 @@ const getPostByUserId = async function getPostByuserId(req, res, next) {
     const limit = req.query.limit ? Number(req.query.limit):10 
     const skip = req.query.skip ? Number(req.query.skip):0
     const posts = await Post.find({author:req.user}).sort({createdAt:'descending'}).skip(skip).limit(limit).populate("author")
-    return res.json({posts:posts.map((post)=>post.toJSONFor())})
+    return res.json({posts:posts.map(post=>post.toJSONFor())})
 }
 const updatePost = async function updatePost(req, res, next){
     if(req.payload.id.toString() === req.post.author._id.toString()){
@@ -75,14 +76,23 @@ const removePost = async function removePost(req, res,){
   }
   return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
 }
-router.use(auth.required)
+const getFeed = async function getPostByFollowing(req,res){
+  const limit = req.query.limit ? Number(req.query.limit):10 
+  const skip = req.query.skip ? Number(req.query.skip):0
+  const user = User.findById(rea.payload.id)
+  const posts = await Post.find({ author:{$in: user.following}}).sort({createdAt:'descending'}).limit(limit).skip(skip).populate('author')
+  return res.status.json({posts: posts.map(post=>post.toJSONFor())})
+}
 
+
+router.use(auth.required)
 router.get('/', getPosts)
 router.post('/', createPost);
 router.get('/:post', getPostById)
 router.delete('/:post', removePost);
 router.put('/:post', updatePost);
 router.get('/search/:user', getPostByUserId)
+router.get('/feed',getFeed)
 
 
 
