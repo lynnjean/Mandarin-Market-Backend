@@ -28,9 +28,19 @@ router.get('/:accountname',auth.optional,(req,res,next)=>{
 })
 
 router.get('/:accountname/follow',function(req,res,next){
+    var limit=10;
+    var offset=0;
+
     var profileId=req.profile.id;
 
-    User.findById(req.payload.id).then(function(user){
+    if (typeof req.query.limit!=='undefined'){
+        limit=req.query.limit;
+    }
+    if (typeof req.query.offset!=='undefined'){
+        offset=req.query.offset;
+    }
+
+    User.findById(req.payload.id).limit(Number(limit)).skip(Number(offset)).then(function(user){
         if (!user) return res.status(401);
         return user.follow(profileId).then(function(){
             return res.send(user.following)

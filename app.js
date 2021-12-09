@@ -7,7 +7,8 @@ var fs = require('fs'),
     passport = require('passport'),
     errorhandler = require('errorhandler'),
     mongoose = require('mongoose'),
-    morgan=require('morgan');
+    morgan=require('morgan'),
+    multer = require('multer');
 
 var app=express();
 
@@ -15,7 +16,6 @@ app.use(morgan('dev'));
 app.use(cors());
 app.use(express.urlencoded({extended:false}));
 app.use(express.json())
-
 app.use(require('method-override')());
 
 mongoose.connect('mongodb://localhost/user');
@@ -27,4 +27,11 @@ require('./config/passport');
 
 app.use(require('./routes'))
 
-app.listen(5050,()=>{console.log('start server')});
+app.use(express.static('uploadFiles'));
+
+app.listen(5050,()=>{
+    var dir='./uploadFiles';
+    if(!fs.existsSync(dir)) fs.mkdirSync(dir);
+    
+    console.log('start server')
+});

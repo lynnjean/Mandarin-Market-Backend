@@ -3,13 +3,14 @@ var express=require('express');
 var passport=require('passport');
 var User=mongoose.model('User');
 var auth=require('./auth');
+var image=require('./image.js');
 var Jwt=require('jsonwebtoken');
 
 var secret=require('../config').secret;
 var jwt=require('jsonwebtoken');
 
 var router=express.Router();
-
+ 
 var list=(req,res,next)=>{
     User.findById(req.payload.id).then((user)=>{
         if (!user){
@@ -46,17 +47,18 @@ var login=(req,res,next)=>{
     })(req,res,next);
 };
 
+  
 var create=(req,res,next)=>{
+    console.log(req.file)
     var user=new User();
     user.username=req.body.user.username;
     user.accountname = req.body.user.accountname;
     user.email=req.body.user.email;
     user.intro=req.body.user.intro;
     user.setPassword(req.body.user.password);
+    // user.image=`/uploadFiles/`+res.req.file.filename;
     
-    console.log(user);
     user.save().then(()=>{
-        console.log(("잘옴?"));
         return res.json(user)
         // return res.json({user:req.user.toAuthJSON()});
     }).catch(next);
@@ -83,7 +85,9 @@ var refreshAuth=(req,res)=>{
     return token;
 }
 
-
+router.get('/user/image',function(req,res){
+    res.render('upload')
+})
 router.get('/user',auth.required, list);
 router.post('/user',create);
 router.post('/user/login',login);
@@ -105,7 +109,6 @@ router.put('/user', auth.required,function(req,res,next){
         }
 
         return User.findOneAndUpdate({_id:req.payload.id},user).then(function(){
-            console.log(user)
             return res.json({user:user.toProfileJSONFor(user)});
         })
     })

@@ -16,17 +16,23 @@ const create = async function createProduct(req, res, next) {
 }
 
 router.get('/',async (req,res,next)=>{
-    const products = await Product.find({}).sort({createdAt:'descending'}).populate('author');
+    var limit=10;
+    var offset=0;
+
+    if (typeof req.query.limit!=='undefined'){
+        limit=req.query.limit;
+    }
+    if (typeof req.query.offset!=='undefined'){
+        offset=req.query.offset;
+    }
+
+    const products = await Product.find({}).sort({createdAt:'descending'}).limit(Number(limit)).skip(Number(offset)).populate('author');
     res.status('200').json({
         status: 'ok',
         data: products.length,
         products,
     })
 })
-
-// router.delete('/:',async (req,res,next)=>{
-//     await Product.find({})
-// })
 
 router.post('/',create)
 
