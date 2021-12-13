@@ -2,11 +2,13 @@ var express=require('express');
 
 var router=express.Router();
 
-router.use('/',require('./users'));
+router.use('/user',require('./user'));
 router.use('/post' ,require('./post'));
-router.use('/profiles',require('./profiles'));
+router.use('/profile',require('./profile'));
 router.use('/product',require('./product'));
 router.use('/image',require('./image'));
+// router.use('/report',require('./report'));
+
 
 router.use((err,req,res,next)=>{
     if(err.name==='ValidationError'){

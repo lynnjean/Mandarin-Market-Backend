@@ -12,6 +12,8 @@ var UserSchema = new mongoose.Schema({
     intro:{type:String},
     hearts:[{type:mongoose.Schema.Types.ObjectId,ref:'Post'}],
     following:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
+    follower:[{type:mongoose.Schema.Types.ObjectId, ref:'User' }],
+    followCount:{type:Number, default: 0},
     hash:{type:String},
     salt:{type:String}
 },{timestamps:true});
@@ -54,17 +56,6 @@ UserSchema.methods.toAuthJson= function(user){
     }
 }
 
-UserSchema.methods.toProfileJSONFor= function(user){
-    return {
-        id:this._id,
-        username:this.username,
-        accountname:this.accountname,
-        intro:this.intro,
-        follower:this.following,
-        following:user?user.isfollowing(this._id):false
-    }
-}
-
 UserSchema.methods.heart=function(id){
     if(this.hearts.indexOf(id)===-1){
         this.hearts.push(id);
@@ -79,26 +70,61 @@ UserSchema.methods.unhearts=function(id){
 
 UserSchema.methods.ishearts=function(id){
     return this.hearts.some(function(heartId){
-        return heartId.toString()==id.toString();
+        return heartId.toString()===id.toString();
     });
+}
+
+UserSchema.methods.toProfileJSONFor= function(user){
+    // var follower = await mongoose.model('User').find({following:{$in:this._id}})
+    return {
+        _id: this._id,
+        username:this.username,
+        accountname:this.accountname,
+        intro:this.intro,
+        following:user?user.isfollowing(this._id):false,
+        follower:this.follower,
+        followerCount:this.followerCount
+    }
 }
 
 UserSchema.methods.follow=function(id){
     if(this.following.indexOf(id)===-1){
         this.following.push(id);
     }
-    return this.updateOne({_id:id},);
+    return this.updateOne(this,);
+}
+
+UserSchema.methods.addFollower = function() {
+    var profile=this;
+    return mongoose.model('User').count({following:{$in:[this._id]}}).then(function(count){
+        var follower = mongoose.model('User').find({following:{$in:this._id}})
+        var count=follower.count({follower:{$in:[this.id]}})
+        profile.follower=follower;
+        profile.followCount=count;
+        console.log(profile)
+
+        return profile.update(this,);
+
+    })
+
+
+
 }
 
 UserSchema.methods.unfollows=function(id){
+    // console.log(this.following);
+
     this.following.remove(id);
-    return this.updateOne({_id:id},);
+    // console.log(this.following);
+    return this.updateOne({following:id},);
+    // console.log(this)
 }
 
 UserSchema.methods.isfollowing=function(id){
     return this.following.some(function(followId){
-        return followId.toString()==id.toString();
+        return followId.toString()===id.toString();
     });
 }
+
 
 mongoose.model('User',UserSchema);

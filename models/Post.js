@@ -4,9 +4,9 @@ var autoIncrement = require('mongoose-sequence');
 var User = mongoose.model('User')
 
 var PostSchema = new mongoose.Schema({
-    title:String,
-    contentId:Number,
     content:String,
+    //(post)local/image/uploadFiles ->(get)local/filename.png
+    image:String,
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     comments:[{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}],
     heartCount:{type:Number, default: 0},
@@ -23,13 +23,13 @@ PostSchema.methods.updateHeartCount = function() {
 PostSchema.methods.toJSONFor = function(user){
     return {
         id:this._id,
-        contentId:this.contentId,
-        title: this.title,
+        content:this.content,
+        image:this.image,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
         hearted: user ? user.ishearts(this._id) : false,
         heartCount:this.heartCount,
-        author: this.author.toProfileJSONFor(user)
+        author: this.author.toProfileJSONFor(this.author)
     };
   };
 

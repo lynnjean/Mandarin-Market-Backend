@@ -7,6 +7,7 @@ var ProductSchema = new mongoose.Schema({
     itemName:String,
     price:Number,
     link:String,
+    //(post)local/image/uploadFiles ->(get)local/filename.png
     itemImage: String,
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 },{timestamps:true})
@@ -19,7 +20,7 @@ ProductSchema.methods.toProductJSONFor = function(user){
         link:this.link,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
-        author: this.author
+        author: this.author.toProfileJSONFor(this.author)
     };
   };
 

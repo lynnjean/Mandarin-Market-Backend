@@ -1,7 +1,6 @@
 var express=require('express'),
 router=express.Router(),
 multer=require('multer'),
-fs = require('fs'),
 path = require('path');
 
 var storage = multer.diskStorage({
@@ -17,11 +16,9 @@ var storage = multer.diskStorage({
 
 var upload=multer({storage:storage,limits:{fileSize: 10 * 1024 * 1024}}) //MB*110*110
 
-router.post('/uploadfile',upload.single('file'),function(req,res){
-    check_file_type=['jpg','gif','png','jpeg','bmp','tif'];
+router.post('/uploadfile',upload.single('image'),function(req,res){
+    ext=['jpg','gif','png','jpeg','bmp','tif'];
 
-	// if(check_file_type.indexOf(file_type)==-1) {
-    // 확장자 ["image/png","image/gif","image/jpeg"]
     // if (req.file.mimetype==="image/png")
     //     return res.render('confirmation',{file:req.file,files:null})
     // else return res.send('이미지 파일만 업로드')

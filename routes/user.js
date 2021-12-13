@@ -43,26 +43,45 @@ var login=(req,res,next)=>{
         }else {
             return res.status(422).json(info);
         }
-        
     })(req,res,next);
 };
 
   
 var create=(req,res,next)=>{
-    console.log(req.file)
     var user=new User();
     user.username=req.body.user.username;
     user.accountname = req.body.user.accountname;
     user.email=req.body.user.email;
     user.intro=req.body.user.intro;
     user.setPassword(req.body.user.password);
-    // user.image=`/uploadFiles/`+res.req.file.filename;
+    //(post)local/image/uploadFile ->(get)local/filename.png
+    user.image=req.body.user.image; 
     
     user.save().then(()=>{
         return res.json(user)
         // return res.json({user:req.user.toAuthJSON()});
     }).catch(next);
 };
+
+var update=(req,res,next)=>{
+    User.findById(req.payload.id).then(function(user){
+        if (!user) return res.status(401);
+
+        if(typeof req.body.user.username!=='undefined'){
+            user.username=req.body.user.username;
+        }
+        if(typeof req.body.user.accountname!=='undefined'){
+            user.accountname=req.body.user.accountname;
+        }
+        if(typeof req.body.user.intro!=='undefined'){
+            user.intro=req.body.user.intro;
+        }
+
+        return User.findOneAndUpdate({_id:req.payload.id},user).then(function(){
+            return res.json({user:user.toProfileJSONFor(user)});
+        })
+    })
+}
 
 var refreshAuth=(req,res)=>{
     let refreshToken=req.body.refreshToken;
@@ -85,33 +104,23 @@ var refreshAuth=(req,res)=>{
     return token;
 }
 
-router.get('/user/image',function(req,res){
-    res.render('upload')
-})
-router.get('/user',auth.required, list);
-router.post('/user',create);
-router.post('/user/login',login);
+var searchUser = (req, res)=>{
+    var keyword = req.query.keyword
+    var options = [{username: new RegExp(keyword)}, {accountname: new RegExp(keyword)}]
+    User.find({$or:options}).then(
+        (result)=>{
+            res.json(result.map((user)=>{return user.toProfileJSONFor()}))
+        }
+    )
+
+}
+router.post('/',create); //0
+router.post('/login',login); //0
+
+router.use(auth.required);
+router.get('/', list); //0
+router.put('/',update); //0
 router.post('/refresh',refreshAuth);
-
-
-router.put('/user', auth.required,function(req,res,next){
-    User.findById(req.payload.id).then(function(user){
-        if (!user) return res.status(401);
-
-        if(typeof req.body.user.username!=='undefined'){
-            user.username=req.body.user.username;
-        }
-        if(typeof req.body.user.accountname!=='undefined'){
-            user.accountname=req.body.user.accountname;
-        }
-        if(typeof req.body.user.intro!=='undefined'){
-            user.intro=req.body.user.intro;
-        }
-
-        return User.findOneAndUpdate({_id:req.payload.id},user).then(function(){
-            return res.json({user:user.toProfileJSONFor(user)});
-        })
-    })
-})
+router.get('/searchuser',searchUser);//0
 
 module.exports = router;

@@ -15,7 +15,7 @@ const create = async function createProduct(req, res, next) {
     return res.json({product:product.toProductJSONFor(user)})
 }
 
-router.get('/',async (req,res,next)=>{
+const productlist = async (req,res,next)=>{
     var limit=10;
     var offset=0;
 
@@ -32,9 +32,7 @@ router.get('/',async (req,res,next)=>{
         data: products.length,
         products,
     })
-})
-
-router.post('/',create)
+}
 
 router.param('product',function(req,res,next,_id){
     Product.findById({_id:_id}).populate('author')
@@ -45,7 +43,7 @@ router.param('product',function(req,res,next,_id){
     }).catch(next);
 })
 
-router.get('/:product',auth.optional,(req,res,next)=>{
+const productinfo=(req,res,next)=>{
     Promise.all([
         req.payload ? User.findById(req.payload.id):null,
         req.product.populate('author')
@@ -53,9 +51,9 @@ router.get('/:product',auth.optional,(req,res,next)=>{
         var user=results[0];
         return res.json({product:req.product.toProductJSONFor(user)})
     }).catch(next);
-})
+}
 
-router.put('/:product',function (req,res,next){
+const productUpdate=function (req,res,next){
     User.findById(req.payload.id).then((user)=>{
         if(req.product.author._id.toString() === req.payload.id.toString()){
             if(typeof req.body.product.itemName!=='undefined'){
@@ -72,9 +70,9 @@ router.put('/:product',function (req,res,next){
             }).catch(next);
         }else return res.status(403);
     })
-})
+}
 
-router.delete('/:product',function (req,res,next){
+const productremove=function (req,res,next){
     User.findById(req.payload.id).then((user)=>{
         if (!user) return res.status(401);
 
@@ -85,7 +83,12 @@ router.delete('/:product',function (req,res,next){
                 });
         } else return res.sendStatus(403);
     })
-    console.log(req.product)
-})
+}
+
+router.get('/', productlist); //0
+router.post('/',create); //0
+router.get('/:product',auth.optional,productinfo); //0
+router.put('/:product',productUpdate); //0
+router.delete('/:product',productremove); //0
 
 module.exports = router;
