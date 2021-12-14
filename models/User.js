@@ -88,27 +88,21 @@ UserSchema.methods.toProfileJSONFor= function(user){
 }
 
 UserSchema.methods.follow=function(id){
+    const user = this
     if(this.following.indexOf(id)===-1){
         this.following.push(id);
     }
-    return this.updateOne(this,);
+    return this.updateOne({id:this._id},{following:this.following},);
 }
 
-UserSchema.methods.addFollower = function() {
-    var profile=this;
-    return mongoose.model('User').count({following:{$in:[this._id]}}).then(function(count){
-        var follower = mongoose.model('User').find({following:{$in:this._id}})
-        var count=follower.count({follower:{$in:[this.id]}})
-        profile.follower=follower;
-        profile.followCount=count;
-        console.log(profile)
+UserSchema.methods.addFollower = function(id) {
+    const user = this
+    if(this.follower.indexOf(id)===-1){
+        this.follower.push(id);
+    }
 
-        return profile.update(this,);
-
-    })
-
-
-
+    
+    return user.updateOne({id:this._id},{follower:this.follower},);
 }
 
 UserSchema.methods.unfollows=function(id){

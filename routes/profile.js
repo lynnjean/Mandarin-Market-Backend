@@ -76,18 +76,15 @@ router.param('accountname',(req,res,next,accountname)=>{
 // }
 
 
-var follows=(req,res,next)=>{
+var follows= async (req,res,next)=>{
     var profileId=req.profile.id;
-
-    User.findById(req.payload.id).then(function(user){
-        if (!user) return res.status(401);
-  
-        return user.follow(profileId).then(function(){
-           return user.addFollower().then(function(user){
-                return res.json({profile:req.profile.toProfileJSONFor()});
-           });
-        });
-    }).catch(next);
+    const user =  await User.findById(req.payload.id)
+    if (!user) return res.status(401);
+    user.follow(profileId)
+    req.profile.addFollower(req.payload.id)
+    await User.findByIdAndUpdate(req.payload.id, user)
+    await User.findByIdAndUpdate(profileId, req.profile)
+    return res.json({profile:req.profile.toProfileJSONFor()})
   };
   
 // var unfollow=(req,res,next)=>{
