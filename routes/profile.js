@@ -51,7 +51,6 @@ var unfollow=(req,res,next)=>{
     }).catch(next);
 };
 
-
 router.use(auth.required);
 router.get('/:accountname',auth.optional,account);
 router.post('/:accountname/follow',follows);
