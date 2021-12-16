@@ -93,15 +93,13 @@ UserSchema.methods.follow=function(id){
     if(this.following.indexOf(id)===-1){
         this.following.push(id);
     }
-    return this.updateOne({id:this._id},{following:this.following},);
+    return this.updateOne({following:this.following},);
 }
 
 UserSchema.methods.addFollower = function(id) {
     if(this.follower.indexOf(id)===-1){
-        this.follower.pop(id);
+        this.follower.push(id);
     }
-
-    
     return this.updateOne({id:this._id},{follower:this.follower},);
 }
 UserSchema.methods.removeFollower = function(id){

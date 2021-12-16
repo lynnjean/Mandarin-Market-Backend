@@ -81,8 +81,8 @@ var follows= async (req,res,next)=>{
     if (!user) return res.status(401);
     user.follow(profileId)
     req.profile.addFollower(req.payload.id)
-    await User.findByIdAndUpdate(req.payload.id, user.id)
-    await req.profile.findByIdAndUpdate(profileId, req.profile)
+    await User.findByIdAndUpdate(req.payload.id, user)
+    await User.findByIdAndUpdate(profileId, req.profile)
     return res.json({profile:req.profile.toProfileJSONFor()})
   };
   
