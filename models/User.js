@@ -8,7 +8,7 @@ var UserSchema = new mongoose.Schema({
     username:{type:String, index:true},
     image:{type:String},
     email:{type:String, lowercase:true, unique:true, required:[true, "필수 입력 사항입니다."], match: [/\S+@\S+\.\S+/, '잘못된 이메일 형식입니다.'],index:true},
-    accountname:{type:String, unique:true, required:[true, "필수 입력 사항입니다."],index:true},
+    accountname:{type:String, unique:true, required:[true, "필수 입력 사항입니다."],match:/^[_.a-zA-Z0-9|s]*$/,index:true},
     intro:{type:String},
     hearts:[{type:mongoose.Schema.Types.ObjectId,ref:'Post'}],
     following:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
@@ -47,10 +47,12 @@ UserSchema.methods.refreshJWT= function (){
 
 UserSchema.methods.toAuthJson= function(user){
     return {
+        _id:this._id,
         username:this.username,
         email:this.email,
         accountname:this.accountname,
         intro:this.intro,
+        image:this.image || '/uploadFiles/Ellipse.png',
         token:this.generateJWT(),
         refreshToken:this.refreshJWT()
     }

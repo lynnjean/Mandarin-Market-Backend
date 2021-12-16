@@ -11,23 +11,22 @@ router.param('accountname',(req,res,next,accountname)=>{
     User.findOne({accountname:accountname}).then((user)=>{
         if (!user) return res.status(404).send("잘못된 요청입니다.");
         req.profile=user;
-        // console.log(req.profile)
-        // console.log(req.user)
         next();
     }).catch(next);
 })
 
-// var account=(req,res,next)=>{
-//     if(req.payload){
-//         User.findById(req.payload.id).then((user)=>{
-//             if(!user){
-//                 return res.json({profile:req.profile.toProfileJSONFor(false)});
-//             } return res.json({profile:req.profile.toProfileJSONFor(user)})
-//         });
-//     }else{
-//         return res.json({profile:req.profile.toProfileJSONFor(false)});
-//     }
-// }
+var account=(req,res,next)=>{
+    if(req.payload){
+        User.findById(req.payload.id).then((user)=>{
+            if(!user){
+                return res.json({profile:req.profile.toProfileJSONFor(false)});
+            } return res.json({profile:req.profile.toProfileJSONFor(user)})
+        });
+    }else{
+        return res.json({profile:req.profile.toProfileJSONFor(false)});
+    }
+}
+
 
 // var followlist=(req,res,next)=>{
 //     var limit=10;
@@ -87,9 +86,8 @@ var follows= async (req,res,next)=>{
     return res.json({profile:req.profile.toProfileJSONFor()})
   };
   
-
-
 router.use(auth.required);
+router.get('/:accountname',auth.optional,account);
 router.post('/:accountname/follow',follows);
 // router.get('/:accountname',auth.optional,account);
 // router.get('/:accountname/follow',followlist);
