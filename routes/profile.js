@@ -9,7 +9,7 @@ router.use(auth.required)
 
 router.param('accountname',(req,res,next,accountname)=>{
     User.findOne({accountname:accountname}).then((user)=>{
-        if (!user) return res.status(404).send("11s");
+        if (!user) return res.status(404).send("잘못된 요청입니다.");
         req.profile=user;
         // console.log(req.profile)
         // console.log(req.user)
@@ -63,17 +63,17 @@ router.param('accountname',(req,res,next,accountname)=>{
 //     }).catch(next);
 // }
 
-// var unfollow=(req,res,next)=>{
-//     var profileId=req.profile.id;
-    
-//     User.findById(req.payload.id).then(function(user){
-//         if (!user) return res.status(401);
-
-//         return user.unfollows(profileId).then(function(){
-//             return res.json({profile:req.profile.toProfileJSONFor(user)});
-//         });
-//     }).catch(next);
-// }
+var unfollow= async (req,res,next)=>{
+    var profileId=req.profile.id;
+    const user =  await User.findById(req.payload.id);
+    if (!user) return res.status(401).sned("존재지 않는 유저입니다.");
+    user.unfollow(profileId)
+    req.profile.removeFollower(req.payload.id)
+    console.log(req.profile)
+    await User.findByIdAndUpdate(req.payload.id, user)
+    await User.findByIdAndUpdate(profileId, req.profile)
+    return res.json({profile:req.profile.toProfileJSONFor()})
+}
 
 
 var follows= async (req,res,next)=>{
@@ -82,30 +82,17 @@ var follows= async (req,res,next)=>{
     if (!user) return res.status(401);
     user.follow(profileId)
     req.profile.addFollower(req.payload.id)
-    await User.findByIdAndUpdate(req.payload.id, user)
-    await User.findByIdAndUpdate(profileId, req.profile)
+    await User.findByIdAndUpdate(req.payload.id, user.id)
+    await req.profile.findByIdAndUpdate(profileId, req.profile)
     return res.json({profile:req.profile.toProfileJSONFor()})
   };
   
-// var unfollow=(req,res,next)=>{
-//     var postId=req.post.id;
-//     User.findById(req.payload.id).then(function(user){
-//         if (!user) return res.status(401);
-        
-//         return user.unhearts(postId).then(function(){
-//            return req.post.updateHeartCount().then(function(post){
-//                 return res.json({post:req.post.toJSONFor(user)});
-//            });
-//         });
-//     }).catch(next);
-//   };
-
 
 
 router.use(auth.required);
 router.post('/:accountname/follow',follows);
 // router.get('/:accountname',auth.optional,account);
 // router.get('/:accountname/follow',followlist);
-// router.delete('/:accountname/follow', unfollow);
+router.delete('/:accountname/unfollow', unfollow);
 
 module.exports=router;

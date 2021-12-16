@@ -88,7 +88,6 @@ UserSchema.methods.toProfileJSONFor= function(user){
 }
 
 UserSchema.methods.follow=function(id){
-    const user = this
     if(this.following.indexOf(id)===-1){
         this.following.push(id);
     }
@@ -96,21 +95,22 @@ UserSchema.methods.follow=function(id){
 }
 
 UserSchema.methods.addFollower = function(id) {
-    const user = this
     if(this.follower.indexOf(id)===-1){
-        this.follower.push(id);
+        this.follower.pop(id);
     }
 
     
-    return user.updateOne({id:this._id},{follower:this.follower},);
+    return this.updateOne({id:this._id},{follower:this.follower},);
 }
-
-UserSchema.methods.unfollows=function(id){
+UserSchema.methods.removeFollower = function(id){
+    this.follower.remove(id);
+    return this.updateOne({id:this._id},{follower:this.follower},);
+}
+UserSchema.methods.unfollow=function(id){
     // console.log(this.following);
-
     this.following.remove(id);
     // console.log(this.following);
-    return this.updateOne({following:id},);
+    return this.updateOne({following:this.following},);
     // console.log(this)
 }
 
