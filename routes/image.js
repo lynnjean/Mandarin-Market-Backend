@@ -9,30 +9,33 @@ var storage = multer.diskStorage({
     },
     filename : function(req, file, collback){
         var mimeType;
-    
         collback(null, new Date().valueOf() + path.extname(file.originalname));
     }
 });
 
-var upload=multer({storage:storage,limits:{fileSize: 10 * 1024 * 1024}}) //MB*110*110
+var upload=multer({
+    storage:storage,
+    limits:{
+        fileSize: 10 * 1024 * 1024,
+        //fieldNameSize:필드명 사이즈 최대값
+        //fields:필드의 최대 개수
+        //fileSize:최대 파일 사이즈(bytes)
+        files:3 //파일 필드 최대 개수
+    },fileFilter:function(req,file,callback){
+        ext=['.jpg','.gif','.png','.jpeg','.bmp','.tif'];
+
+        var index = ext.indexOf(path.extname(file.originalname));
+        if (index !== -1)
+            callback(null,true)
+        else return callback({message:"이미지 파일만 업로드가 가능합니다."},false)
+    }   
+}) //MB*110*110
 
 router.post('/uploadfile',upload.single('image'),function(req,res){
-    ext=['jpg','gif','png','jpeg','bmp','tif'];
-
-    // if (req.file.mimetype==="image/png")
-    //     return res.render('confirmation',{file:req.file,files:null})
-    // else return res.send('이미지 파일만 업로드')
     return res.send(req.file)
-    // };
 })
 
 router.post('/uploadFiles',upload.array('image'),function(req,res){
-    // 확장자 ["image/png","image/gif","image/jpeg"]
-    // if (req.file.mimetype==="image/png")
-    //     res.render('confirmation',{file:null,files:req.files})
-    // else return res.send('이미지 파일만 업로드') 
-
-    console.log(req.files)
     return res.send(req.files)
 })
 

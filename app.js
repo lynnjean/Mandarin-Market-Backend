@@ -17,6 +17,7 @@ app.use(cors());
 app.use(express.urlencoded({extended:false}));
 app.use(express.json())
 app.use(require('method-override')());
+// app.use(errorhandler());
 
 mongoose.connect('mongodb://localhost/user');
 db = mongoose.connection;
@@ -42,3 +43,8 @@ app.listen(5050,()=>{
     
     console.log('start server')
 });
+
+
+
+
+

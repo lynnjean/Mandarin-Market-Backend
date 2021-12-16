@@ -8,47 +8,41 @@ var Jwt=require('jsonwebtoken');
 
 var secret=require('../config').secret;
 var jwt=require('jsonwebtoken');
+const { read } = require('fs');
 
 var router=express.Router();
  
 var list=(req,res,next)=>{
     User.findById(req.payload.id).then((user)=>{
         if (!user){
-            return res.status(401);
+            return res.status(401).send("존재하지 않는 유저입니다.")
         }
-        // return res.json({user:user.toAuthJSON()});
-        return res.json(user);
+        return res.json({user:user.toAuthJson(user)});
     }).catch(next);
 };
 
 var login=(req,res,next)=>{
-    if (!req.body.user.email) return res.status(422).json({errors:{email:"can't be blank"}});
-
-    if (!req.body.user.password) return res.status(422).json({errors:{password:"can't be blank"}});
+    if (!req.body.user.email&&!req.body.user.password) return res.status(422).send("이메일 또는 비밀번호를 입력해주세요.");
+    if (!req.body.user.email) return res.status(422).send("이메일을 입력해주세요.");
+    if (!req.body.user.password) return res.status(422).send("패스워드를 입력해주세요.");
 
     passport.authenticate('local',{session:false}, (err,user,info)=>{
         if (err) return next(err);
         if (user){
             var token=user.generateJWT();
             var refreshToken=user.refreshJWT();
-
-            return res.json({
-                id:user.id,
-                username:user.username,
-                email:user.email,
-                accountname:user.accountname,
-                token:token,
-                refreshToken:refreshToken
-            });
+            return res.json({user:user.toAuthJson()})
         }else {
-            return res.status(422).json(info);
+            return res.status(422).send("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
     })(req,res,next);
 };
-
   
-var create=(req,res,next)=>{
+var create=function(req,res,next){
     var user=new User();
+    if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password) return res.status(422).send("필수 입력사항을 입력해주세요.");
+    if (req.body.user.password.length<6) return res.send('비밀번호는 6자 이상이어야 합니다.')
+
     user.username=req.body.user.username;
     user.accountname = req.body.user.accountname;
     user.email=req.body.user.email;
@@ -58,14 +52,13 @@ var create=(req,res,next)=>{
     user.image=req.body.user.image; 
     
     user.save().then(()=>{
-        return res.json(user)
-        // return res.json({user:req.user.toAuthJSON()});
+        return res.json({user:user.toAuthJson()})
     }).catch(next);
 };
 
 var update=(req,res,next)=>{
     User.findById(req.payload.id).then(function(user){
-        if (!user) return res.status(401);
+        if (!user) return res.status(401).send("존재하지 않는 유저입니다.");
 
         if(typeof req.body.user.username!=='undefined'){
             user.username=req.body.user.username;
@@ -80,11 +73,11 @@ var update=(req,res,next)=>{
         return User.findOneAndUpdate({_id:req.payload.id},user).then(function(){
             return res.json({user:user.toProfileJSONFor(user)});
         })
-    })
+    }).catch(next);
 }
 
 var refreshAuth=(req,res)=>{
-    let refreshToken=req.body.refreshToken;
+    let refreshToken=req.body.refreshToken;ㅇ
 
     if(!refreshToken){
         console.log(error)
@@ -112,15 +105,14 @@ var searchUser = (req, res)=>{
             res.json(result.map((user)=>{return user.toProfileJSONFor()}))
         }
     )
-
 }
-router.post('/',create); //0
-router.post('/login',login); //0
+
+router.post('/',create);
+router.post('/login',login);
 
 router.use(auth.required);
-router.get('/', list); //0
-router.put('/',update); //0
-router.post('/refresh',refreshAuth);
-router.get('/searchuser',searchUser);//0
+router.get('/', list); 
+router.put('/',update);
+router.get('/searchuser',searchUser);
 
 module.exports = router;
