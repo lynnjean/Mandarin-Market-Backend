@@ -17,7 +17,7 @@ router.use((req,res,next)=>{
 
 router.use((err,req,res,next)=>{
     if(err.name==='ValidationError'){
-        if(err.errors.email){
+        if(err.errors.email){ 
             if(err.errors.email.kind==='regexp'){
                 err.errors.email.message="잘못된 이메일 형식입니다."
             }

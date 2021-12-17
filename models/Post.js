@@ -29,6 +29,7 @@ PostSchema.methods.toJSONFor = function(user){
         updatedAt: this.updatedAt,
         hearted: user ? user.ishearts(this._id) : false,
         heartCount:this.heartCount,
+        commentCount:this.comments.length,
         author: this.author.toProfileJSONFor(this.author)
     };
   };

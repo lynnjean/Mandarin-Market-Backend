@@ -40,7 +40,7 @@ var login=(req,res,next)=>{
   
 var create=function(req,res,next){
     var user=new User();
-    if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password) return res.status(422).json("필수 입력사항을 입력해주세요.");
+    if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password||!req.body.user.username) return res.status(422).json("필수 입력사항을 입력해주세요.");
     if (req.body.user.password.length<6) return res.status(422).res.json('비밀번호는 6자 이상이어야 합니다.')
 
     user.username=req.body.user.username;
