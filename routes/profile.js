@@ -55,7 +55,6 @@ var unfollow= async (req,res,next)=>{
     return res.json({profile:req.profile.toProfileJSONFor()})
 }
 
-
 var follows= async (req,res,next)=>{
     var profileId=req.profile.id;
     const user =  await User.findById(req.payload.id);
