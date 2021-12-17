@@ -58,9 +58,9 @@ UserSchema.methods.toAuthJson= function(user){
     }
 }
 
-UserSchema.methods.userDelete=function(id){
+UserSchema.methods.userDelete=function(res,id){
     this.remove(id);
-    return this
+    return true
 }
 
 UserSchema.methods.heart=function(id){
