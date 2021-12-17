@@ -15,16 +15,16 @@ var router=express.Router();
 var list=(req,res,next)=>{
     User.findById(req.payload.id).then((user)=>{
         if (!user){
-            return res.status(401).send("존재하지 않는 유저입니다.")
+            return res.status(401).json("존재하지 않는 유저입니다.")
         }
         return res.json({user:user.toAuthJson(user)});
     }).catch(next);
 };
 
 var login=(req,res,next)=>{
-    if (!req.body.user.email&&!req.body.user.password) return res.status(422).send("이메일 또는 비밀번호를 입력해주세요.");
-    if (!req.body.user.email) return res.status(422).send("이메일을 입력해주세요.");
-    if (!req.body.user.password) return res.status(422).send("패스워드를 입력해주세요.");
+    if (!req.body.user.email&&!req.body.user.password) return res.status(422).json("이메일 또는 비밀번호를 입력해주세요.");
+    if (!req.body.user.email) return res.status(422).json("이메일을 입력해주세요.");
+    if (!req.body.user.password) return res.status(422).json("패스워드를 입력해주세요.");
 
     passport.authenticate('local',{session:false}, (err,user,info)=>{
         if (err) return next(err);
@@ -33,15 +33,15 @@ var login=(req,res,next)=>{
             var refreshToken=user.refreshJWT();
             return res.json({user:user.toAuthJson()})
         }else {
-            return res.status(422).send("이메일 또는 비밀번호가 일치하지 않습니다.");
+            return res.status(422).json("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
     })(req,res,next);
 };
   
 var create=function(req,res,next){
     var user=new User();
-    if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password) return res.status(422).send("필수 입력사항을 입력해주세요.");
-    if (req.body.user.password.length<6) return res.status(422).res.send('비밀번호는 6자 이상이어야 합니다.')
+    if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password) return res.status(422).json("필수 입력사항을 입력해주세요.");
+    if (req.body.user.password.length<6) return res.status(422).res.json('비밀번호는 6자 이상이어야 합니다.')
 
     user.username=req.body.user.username;
     user.accountname = req.body.user.accountname;
@@ -52,13 +52,13 @@ var create=function(req,res,next){
     user.image=req.body.user.image; 
     
     user.save().then(()=>{
-        return res.status(200).send('회원가입 성공')
+        return res.status(200).json('회원가입 성공')
     }).catch(next);
 };
 
 var update=(req,res,next)=>{
     User.findById(req.payload.id).then(function(user){
-        if (!user) return res.status(401).send("존재하지 않는 유저입니다.");
+        if (!user) return res.status(401).json("존재하지 않는 유저입니다.");
 
         if(typeof req.body.user.username!=='undefined'){
             user.username=req.body.user.username;

@@ -10,9 +10,9 @@ router.use(auth.required);
 const create = async function createProduct(req, res, next) {
     const user = await User.findById(req.payload.id)
     const product = new Product(req.body.product)
-    if(!user) return res.status(401).send("존재하지 않는 유저입니다.")
-    if (!req.body.product.itemName||!req.body.product.price||!req.body.product.itemImage||!req.body.product.link) return res.status(422).send("필수 입력사항을 입력해주세요.");
-    if(typeof(req.body.product.price)==='string') return res.status(422).send('숫자만 입력하실 수 있습니다.')
+    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
+    if (!req.body.product.itemName||!req.body.product.price||!req.body.product.itemImage||!req.body.product.link) return res.status(422).json({'message':"필수 입력사항을 입력해주세요.",'status':'422'});
+    if(typeof(req.body.product.price)==='string') return res.status(422).json({'message':'숫자만 입력하실 수 있습니다.','status':'422'});
     product.author = user
     product.save()
     return res.json({product:product.toProductJSONFor(user)})
@@ -44,7 +44,7 @@ const productlist = async (req,res,next)=>{
 router.param('product',function(req,res,next,_id){
     Product.findById({_id:_id}).populate('author')
     .then((product)=>{
-        if(!product) return res.status(404).send('등록된 상품이 없습니다.');
+        if(!product) return res.status(404).json({'message':'등록된 상품이 없습니다.','status':'404'});
         req.product=product;
         next();
     }).catch(next);

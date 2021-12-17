@@ -12,7 +12,7 @@ router.param('post', async function(req, res, next, postId) {
   Post.findOne({ _id: postId})
     .populate('author')
     .then(function(post) {
-      if (!post) return res.status(404).send("존재하지 않는 게시글입니다.");
+      if (!post) return res.status(404).json({'message':"존재하지 않는 게시글입니다.",'status':404});
       req.post = post;
       return next();
     }).catch(next);
@@ -21,7 +21,7 @@ router.param('post', async function(req, res, next, postId) {
 router.param('user', async function(req, res, next, userId) {
     const user = await User.findById(userId)
     if(!user){
-      return res.status(404).send("존재하지 않는 유저입니다.")
+      return res.status(404).json({'message':"존재하지 않는 유저입니다.",'status':'404'})
     }
     req.user = user
   return next()
@@ -30,7 +30,7 @@ router.param('user', async function(req, res, next, userId) {
 const createPost = async function createPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = new Post(req.body.post)
-    if(!req.body.post.content&&!req.body.post.image) return res.status(422).send('내용 또는 이미지를 입력해주세요.')
+    if(!req.body.post.content&&!req.body.post.image) return res.status(422).json({'message':'내용 또는 이미지를 입력해주세요.','status':'422'})
     post.author = user
     await post.save()
     return res.json({post:post.toJSONFor(user)})
@@ -60,7 +60,7 @@ const updatePost = async function updatePost(req, res, next){
       const post = await Post.findById(req.post.id).populate('author')
       return res.json({post: post.toJSONFor(user)})
   }
-  return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
+  return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
 }
 
 const getFeed = async function getPostByFollowing(req,res){
@@ -74,14 +74,14 @@ const getFeed = async function getPostByFollowing(req,res){
 const removePost = async function removePost(req, res,){
   if(req.payload.id.toString() === req.post.author._id.toString()){
       await Post.findByIdAndDelete(req.post._id,req.body.post)
-      return res.status(200).send("삭제되었습니다.")
+      return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
   }
-  return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
+  return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
 }
 
 const postReport=(req,res,next)=>{
   User.findById(req.payload.id).then(function(user){
-    if(!user){ return res.sendStatus(401); }
+    if(!user) return res.status(401).json({'message':'존재하지 않는 유저 입니다.','status':'401'});
     var report = new Report();
     report.post = req.post._id;
 
@@ -118,7 +118,7 @@ var hearton=(req,res,next)=>{
 var unheart=(req,res,next)=>{
   var postId=req.post.id;
   User.findById(req.payload.id).then(function(user){
-      if (!user) return res.status(401);
+      if (!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
       
       return user.unhearts(postId).then(function(){
          return req.post.updateHeartCount().then(function(post){
@@ -134,7 +134,7 @@ router.delete('/:post/unheart',unheart); //0
 //comment
 router.param('comment', function(req, res, next, id) {
     Comment.findById(id).then(function(comment){
-      if(!comment) return res.status(404).send('댓글이 존재하지 않습니다.')
+      if(!comment) return res.status(404).json({'message':'댓글이 존재하지 않습니다.','status':'404'})
       req.comment = comment;
       return next();
     }).catch(next);
@@ -162,7 +162,7 @@ var commentlist=function(req, res, next){
 
 var comment=function(req, res, next) {
     User.findById(req.payload.id).then(function(user){
-    if(!user){ return res.sendStatus(401); }
+    if(!user){ return res.status(401); }
 
     var comment = new Comment(req.body.comment);
   
@@ -185,16 +185,16 @@ var uncomment=function(req, res, next) {
       req.post.save()
       .then(Comment.find({_id: req.comment._id}).remove().exec())
       .then(function(){
-          res.sendStatus(204);
+          res.status(204).json({'message':'댓글이 삭제되었습니다.','status':'204'});
       });
   } else {
-      res.sendStatus(403);
+      res.status(403).json({'message':'댓글 작성자만 댓글을 삭제할 수 있습니다.','status':'403'});
   }
 };
 
 const commentReport=(req,res,next)=>{
   User.findById(req.payload.id).then(function(user){
-    if(!user){ return res.sendStatus(401); }
+    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
     var report = new Report();
     report.comment = req.comment._id;
 

@@ -9,7 +9,7 @@ router.use(auth.required)
 
 router.param('accountname',(req,res,next,accountname)=>{
     User.findOne({accountname:accountname}).then((user)=>{
-        if (!user) return res.status(404).send("잘못된 요청입니다.");
+        if (!user) return res.status(404).json({'message':"잘못된 요청입니다.",'status':'404'});
         req.profile=user;
         next();
     }).catch(next);
@@ -47,7 +47,7 @@ var followlist=async(req,res,next)=>{
 var unfollow= async (req,res,next)=>{
     var profileId=req.profile.id;
     const user =  await User.findById(req.payload.id);
-    if (!user) return res.status(401).send("존재하지 않는 유저입니다.");
+    if (!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
     user.unfollow(profileId)
     req.profile.removeFollower(req.payload.id)
     await User.findByIdAndUpdate(req.payload.id, user)
