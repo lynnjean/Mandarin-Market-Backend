@@ -13,7 +13,6 @@ const { read } = require('fs');
 var router=express.Router();
  
 var list=(req,res,next)=>{
-    if (!user) return res.status(401).json("유저가 존재하지 않습니다.");
     User.find({}).then((user)=>{
         return res.json(user);
     }).catch(next);
@@ -36,10 +35,13 @@ var login=(req,res,next)=>{
     })(req,res,next);
 };
   
-var create=function(req,res,next){
+var create=function(req,res,next,){
     var user=new User();
-    if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password||!req.body.user.username) return res.status(422).json("필수 입력사항을 입력해주세요.");
-    if (req.body.user.password.length<6) return res.status(422).json('비밀번호는 6자 이상이어야 합니다.')
+    const regex='/\S+@\S+\.\S+/'
+
+    if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password||!req.body.user.username) return res.status(422).json({'message':"필수 입력사항을 입력해주세요.",'status':422});
+    if (regex.test(req.user.email)==='true') return res.status(422).json({'message':'이메일 형식에 맞지 않습니다.','status':422})
+    if (req.body.user.password.length<6) return res.status(422).json({'message':'비밀번호는 6자 이상이어야 합니다.','status':422})
 
     user.username=req.body.user.username;
     user.accountname = req.body.user.accountname;
@@ -78,13 +80,11 @@ var refreshAuth=(req,res)=>{
     let refreshToken=req.body.refreshToken;ㅇ
 
     if(!refreshToken){
-        console.log(error)
         return res.status(401);
     }
 
     Jwt.verify(refreshToken,secret,(error,user)=>{
         if(error){
-            console.log(error);
             return res.status(403);
         }
 
