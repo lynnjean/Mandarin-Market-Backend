@@ -107,12 +107,25 @@ var searchUser = (req, res)=>{
     )
 }
 
+var userdelete=(req,res)=>{
+    User.findById(req.payload.id).then(function(user){
+        if (!user) return res.status(401).json("존재하지 않는 유저입니다.");
+        if(req.payload.id.toString() === req.user.id.toString()){
+            return user.userDelete(req.user.id).then(function(user){
+                return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
+            })
+        }
+        return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
+    })
+}   
+
 router.post('/',create);
 router.post('/login',login);
+router.get('/', list); 
 
 router.use(auth.required);
-router.get('/', list); 
 router.put('/',update);
+router.delete('/',userdelete);
 router.get('/searchuser',searchUser);
 
 module.exports = router;

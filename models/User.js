@@ -58,6 +58,11 @@ UserSchema.methods.toAuthJson= function(user){
     }
 }
 
+UserSchema.methods.userDelete=function(id){
+    this.remove(id);
+    return this
+}
+
 UserSchema.methods.heart=function(id){
     if(this.hearts.indexOf(id)===-1){
         this.hearts.push(id);
