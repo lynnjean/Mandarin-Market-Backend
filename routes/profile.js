@@ -56,6 +56,17 @@ var unfollow= async (req,res,next)=>{
     return res.json({profile:req.profile.toProfileJSONFor()})
 }
 
+var follows= async (req,res,next)=>{
+    var profileId=req.profile.id;
+    const user =  await User.findById(req.payload.id);
+    if (!user) return res.status(401);
+    user.follow(profileId);
+    req.profile.addFollower(req.payload.id);
+    await User.findByIdAndUpdate(req.payload.id, user)
+    await User.findByIdAndUpdate(profileId, req.profile)
+    return res.json({profile:req.profile.toProfileJSONFor()})
+  };
+
 router.use(auth.required);
 router.get('/:accountname',auth.optional,account);
 router.post('/:accountname/follow',follows);
