@@ -71,6 +71,8 @@ var follows= async (req,res,next)=>{
 router.use(auth.required);
 router.get('/:accountname',auth.optional,account);
 router.post('/:accountname/follow',follows);
+// router.get('/:accountname',auth.optional,account);
+// router.get('/:accountname/follow',followlist);
 router.delete('/:accountname/unfollow', unfollow);
 router.get('/:accountname/follow',followlist);
 
