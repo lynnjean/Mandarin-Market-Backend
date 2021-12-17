@@ -30,7 +30,6 @@ var account=(req,res,next)=>{
 var followlist=async(req,res,next)=>{
     var limit=10;
     var offset=0;
-
     var profileId=req.profile.id;
 
     if (typeof req.query.limit!=='undefined'){
