@@ -13,11 +13,8 @@ const { read } = require('fs');
 var router=express.Router();
  
 var list=(req,res,next)=>{
-    User.findById(req.payload.id).then((user)=>{
-        if (!user){
-            return res.status(401).json("존재하지 않는 유저입니다.")
-        }
-        return res.json({user:user.toAuthJson(user)});
+    User.find({}).then((user)=>{
+        return res.json(user);
     }).catch(next);
 };
 
