@@ -13,6 +13,7 @@ const { read } = require('fs');
 var router=express.Router();
  
 var list=(req,res,next)=>{
+    if (!user) return res.status(401).json("유저가 존재하지 않습니다.");
     User.find({}).then((user)=>{
         return res.json(user);
     }).catch(next);
@@ -38,7 +39,7 @@ var login=(req,res,next)=>{
 var create=function(req,res,next){
     var user=new User();
     if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password||!req.body.user.username) return res.status(422).json("필수 입력사항을 입력해주세요.");
-    if (req.body.user.password.length<6) return res.status(422).res.json('비밀번호는 6자 이상이어야 합니다.')
+    if (req.body.user.password.length<6) return res.status(422).json('비밀번호는 6자 이상이어야 합니다.')
 
     user.username=req.body.user.username;
     user.accountname = req.body.user.accountname;
@@ -110,7 +111,6 @@ var userdelete=(req,res)=>{
 
         if(req.payload.id.toString() === req.user.id.toString()){
             value=user.userDelete(req.user.id)
-            console.log(value)
             if(value) return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
         }
         return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
