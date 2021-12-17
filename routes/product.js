@@ -12,7 +12,7 @@ const create = async function createProduct(req, res, next) {
     const product = new Product(req.body.product)
     if(!user) return res.status(401).send("존재하지 않는 유저입니다.")
     if (!req.body.product.itemName||!req.body.product.price||!req.body.product.itemImage||!req.body.product.link) return res.status(422).send("필수 입력사항을 입력해주세요.");
-    if(typeof(req.body.product.price)==='string') return res.send('숫자만 입력하실 수 있습니다.')
+    if(typeof(req.body.product.price)==='string') return res.status(422).send('숫자만 입력하실 수 있습니다.')
     product.author = user
     product.save()
     return res.json({product:product.toProductJSONFor(user)})

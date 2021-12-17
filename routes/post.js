@@ -30,7 +30,7 @@ router.param('user', async function(req, res, next, userId) {
 const createPost = async function createPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = new Post(req.body.post)
-    if(!req.body.post.content&&!req.body.post.image) return res.send('내용 또는 이미지를 입력해주세요.')
+    if(!req.body.post.content&&!req.body.post.image) return res.status(422).send('내용 또는 이미지를 입력해주세요.')
     post.author = user
     await post.save()
     return res.json({post:post.toJSONFor(user)})
@@ -74,7 +74,7 @@ const getFeed = async function getPostByFollowing(req,res){
 const removePost = async function removePost(req, res,){
   if(req.payload.id.toString() === req.post.author._id.toString()){
       await Post.findByIdAndDelete(req.post._id,req.body.post)
-      return res.send("삭제되었습니다.")
+      return res.status(200).send("삭제되었습니다.")
   }
   return res.status(403).send("잘못된 요청입니다. 로그인 정보를 확인하세요")
 }

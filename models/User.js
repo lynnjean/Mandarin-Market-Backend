@@ -13,7 +13,7 @@ var UserSchema = new mongoose.Schema({
     hearts:[{type:mongoose.Schema.Types.ObjectId,ref:'Post'}],
     following:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
     follower:[{type:mongoose.Schema.Types.ObjectId, ref:'User' }],
-    followCount:{type:Number, default: 0},
+    // followerCount:{type:Number, default: 0},
     hash:{type:String},
     salt:{type:String}
 },{timestamps:true});
@@ -77,41 +77,38 @@ UserSchema.methods.ishearts=function(id){
 }
 
 UserSchema.methods.toProfileJSONFor= function(user){
-    // var follower = await mongoose.model('User').find({following:{$in:this._id}})
     return {
         _id: this._id,
         username:this.username,
         accountname:this.accountname,
         intro:this.intro,
-        following:user?user.isfollowing(this._id):false,
+        following:this.following,
         follower:this.follower,
-        followerCount:this.followerCount
+        followerCount:this.follower.length,
+        followingCount:this.following.length
     }
 }
 
 UserSchema.methods.follow=function(id){
-    const user = this
     if(this.following.indexOf(id)===-1){
         this.following.push(id);
     }
-    return this.updateOne({id:this._id},{following:this.following},);
+    return this.updateOne({following:this.following},);
 }
 
 UserSchema.methods.addFollower = function(id) {
-    const user = this
     if(this.follower.indexOf(id)===-1){
         this.follower.push(id);
     }
-    return user.updateOne({id:this._id},{follower:this.follower},);
+    return this.updateOne({id:this._id},{follower:this.follower},);
 }
-
-UserSchema.methods.unfollows=function(id){
-    // console.log(this.following);
-
+UserSchema.methods.removeFollower = function(id){
+    this.follower.remove(id);
+    return this.updateOne({id:this._id},{follower:this.follower},);
+}
+UserSchema.methods.unfollow=function(id){
     this.following.remove(id);
-    // console.log(this.following);
-    return this.updateOne({following:id},);
-    // console.log(this)
+    return this.updateOne({id:this._id},{following:this.following},);
 }
 
 UserSchema.methods.isfollowing=function(id){
@@ -119,6 +116,5 @@ UserSchema.methods.isfollowing=function(id){
         return followId.toString()===id.toString();
     });
 }
-
 
 mongoose.model('User',UserSchema);

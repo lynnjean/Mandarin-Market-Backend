@@ -32,11 +32,11 @@ var upload=multer({
 }) //MB*110*110
 
 router.post('/uploadfile',upload.single('image'),function(req,res){
-    return res.send(req.file)
+    return res.status(200).send(req.file)
 })
 
 router.post('/uploadFiles',upload.array('image'),function(req,res){
-    return res.send(req.files)
+    return res.status(200).send(req.files)
 })
 
 module.exports=router;

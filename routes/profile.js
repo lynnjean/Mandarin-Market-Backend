@@ -9,7 +9,7 @@ router.use(auth.required)
 
 router.param('accountname',(req,res,next,accountname)=>{
     User.findOne({accountname:accountname}).then((user)=>{
-        if (!user) return res.status(404).send("11s");
+        if (!user) return res.status(404).send("잘못된 요청입니다.");
         req.profile=user;
         next();
     }).catch(next);
@@ -27,34 +27,51 @@ var account=(req,res,next)=>{
     }
 }
 
-var follows= async (req,res,next)=>{
+var followlist=async(req,res,next)=>{
+    var limit=10;
+    var offset=0;
+
     var profileId=req.profile.id;
-    const user =  await User.findById(req.payload.id)
-    if (!user) return res.status(401);
-    user.follow(profileId)
-    req.profile.addFollower(req.payload.id)
+
+    if (typeof req.query.limit!=='undefined'){
+        limit=req.query.limit;
+    }
+    if (typeof req.query.offset!=='undefined'){
+        offset=req.query.offset;
+    }
+    const user = await User.findById(req.payload.id).limit(Number(limit)).skip(Number(offset)).populate('following')
+
+    if(!user) return res.status(401);
+    return res.json(user.following.map((user)=>user.toProfileJSONFor()))
+}
+
+var unfollow= async (req,res,next)=>{
+    var profileId=req.profile.id;
+    const user =  await User.findById(req.payload.id);
+    if (!user) return res.status(401).send("존재하지 않는 유저입니다.");
+    user.unfollow(profileId)
+    req.profile.removeFollower(req.payload.id)
     await User.findByIdAndUpdate(req.payload.id, user)
     await User.findByIdAndUpdate(profileId, req.profile)
     return res.json({profile:req.profile.toProfileJSONFor()})
-};
-
-var unfollow=(req,res,next)=>{
-    var postId=req.post.id;
-    User.findById(req.payload.id).then(function(user){
-        if (!user) return res.status(401);
-        
-        return user.unhearts(postId).then(function(){
-           return req.post.updateHeartCount().then(function(post){
-                return res.json({post:req.post.toJSONFor(user)});
-           });
-        });
-    }).catch(next);
-};
+}
 
 
+var follows= async (req,res,next)=>{
+    var profileId=req.profile.id;
+    const user =  await User.findById(req.payload.id);
+    if (!user) return res.status(401);
+    user.follow(profileId);
+    req.profile.addFollower(req.payload.id);
+    await User.findByIdAndUpdate(req.payload.id, user)
+    await User.findByIdAndUpdate(profileId, req.profile)
+    return res.json({profile:req.profile.toProfileJSONFor()})
+  };
+  
 router.use(auth.required);
 router.get('/:accountname',auth.optional,account);
 router.post('/:accountname/follow',follows);
 router.delete('/:accountname/unfollow', unfollow);
+router.get('/:accountname/follow',followlist);
 
 module.exports=router;

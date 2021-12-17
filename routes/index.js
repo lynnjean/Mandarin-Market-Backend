@@ -22,7 +22,7 @@ router.use((err,req,res,next)=>{
                 err.errors.email.message="잘못된 이메일 형식입니다."
             }
             else err.errors.email.message="이미 가입된 이메일 주소 입니다."
-            return res.send(err.errors.email.message)
+            return res.status(422).send(err.errors.email.message)
         }
 
         if(err.errors.accountname){
@@ -30,18 +30,18 @@ router.use((err,req,res,next)=>{
                 err.errors.accountname.message="영문, 숫자, 밑줄, 마침표만 사용할 수 있습니다."
             }
             else err.errors.accountname.message="이미 사용중인 ID입니다."
-            return res.send(err.errors.accountname.message)
+            return res.status(422).send(err.errors.accountname.message)
         }
 
         if(err.errors.content){
             err.errors.content.message='댓글을 입력해주세요.'
-            return res.send(err.errors.content.message)
+            return res.status(422).send(err.errors.content.message)
         }
     }
 
     if (err.name==='MongoServerError'){
         if(err.codeName==='DuplicateKey'){
-            return res.send('이미 사용중인 ID입니다.')
+            return res.status(422).send('이미 사용중인 ID입니다.')
         }
     }
 
@@ -49,8 +49,7 @@ router.use((err,req,res,next)=>{
 })
 
 router.use((err,req,res,next)=>{
-    res.status(err.status ||500);
-    res.send(err)
+    res.status(err.status ||500).send(err)
     return next(err);
 })
 

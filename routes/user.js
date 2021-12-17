@@ -41,7 +41,7 @@ var login=(req,res,next)=>{
 var create=function(req,res,next){
     var user=new User();
     if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password) return res.status(422).send("필수 입력사항을 입력해주세요.");
-    if (req.body.user.password.length<6) return res.send('비밀번호는 6자 이상이어야 합니다.')
+    if (req.body.user.password.length<6) return res.status(422).res.send('비밀번호는 6자 이상이어야 합니다.')
 
     user.username=req.body.user.username;
     user.accountname = req.body.user.accountname;
@@ -52,7 +52,7 @@ var create=function(req,res,next){
     user.image=req.body.user.image; 
     
     user.save().then(()=>{
-        return res.json({user:user.toAuthJson()})
+        return res.status(200).send('회원가입 성공')
     }).catch(next);
 };
 
