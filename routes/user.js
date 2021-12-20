@@ -35,12 +35,11 @@ var login=(req,res,next)=>{
     })(req,res,next);
 };
   
-var create=function(req,res,next,){
+var create=function(req,res,next){
     var user=new User();
-    const regex='/\S+@\S+\.\S+/'
-
+    const regex=new RegExp(/\S+@\S+\.\S+/);
     if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password||!req.body.user.username) return res.status(422).json({'message':"필수 입력사항을 입력해주세요.",'status':422});
-    if (regex.test(req.user.email)==='true') return res.status(422).json({'message':'이메일 형식에 맞지 않습니다.','status':422})
+    if (regex.test(req.body.user.email)===false) return res.status(422).json({'message':'잘못된 이메일 형식입니다.','status':422})
     if (req.body.user.password.length<6) return res.status(422).json({'message':'비밀번호는 6자 이상이어야 합니다.','status':422})
 
     user.username=req.body.user.username;
@@ -52,7 +51,7 @@ var create=function(req,res,next,){
     user.image=req.body.user.image; 
     
     user.save().then(()=>{
-        return res.status(200).json('회원가입 성공')
+        return res.status(200).json({'message':'회원가입 성공','user':user})
     }).catch(next);
 };
 

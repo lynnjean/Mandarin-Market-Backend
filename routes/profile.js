@@ -9,7 +9,7 @@ router.use(auth.required)
 
 router.param('accountname',(req,res,next,accountname)=>{
     User.findOne({accountname:accountname}).then((user)=>{
-        if (!user) return res.status(404).json({'message':"잘못된 요청입니다.",'status':'404'});
+        if (!user) return res.status(404).json({'message':"해당 계정이 존재하지 않습니다.",'status':'404'});
         req.profile=user;
         next();
     }).catch(next);

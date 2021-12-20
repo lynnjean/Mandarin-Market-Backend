@@ -29,7 +29,7 @@ router.use((err,req,res,next)=>{
             if(err.errors.accountname.kind==='regexp'){
                 err.errors.accountname.message="영문, 숫자, 밑줄, 마침표만 사용할 수 있습니다."
             }
-            else err.errors.accountname.message="이미 사용중인 ID입니다."
+            else err.errors.accountname.message="이미 사용중인 계정 ID입니다."
             return res.status(422).json({'message':err.errors.accountname.message,'status':422})
         }
 
@@ -44,7 +44,10 @@ router.use((err,req,res,next)=>{
             return res.status(422).json({'message':'이미 사용중인 ID입니다.','status':422})
         }
     }
-
+    // if (err.name==='db connection'){
+    //     if (error.name==401)
+    //     return res.status(422).json({'message':'비밀번호는 6자 이상이어야 합니다.','status':422})
+    // }
     return next(err);
 })
 

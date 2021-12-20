@@ -87,6 +87,7 @@ UserSchema.methods.toProfileJSONFor= function(user){
         username:this.username,
         accountname:this.accountname,
         intro:this.intro,
+        image:this.image,
         following:this.following,
         follower:this.follower,
         followerCount:this.follower.length,
