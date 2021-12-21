@@ -8,7 +8,7 @@ var Jwt=require('jsonwebtoken');
 
 var secret=require('../config').secret;
 var jwt=require('jsonwebtoken');
-const { read } = require('fs');
+var jwt=require('express-jwt');
 
 var router=express.Router();
  
@@ -51,7 +51,7 @@ var create=function(req,res,next){
     user.image=req.body.user.image; 
     
     user.save().then(()=>{
-        return res.status(200).json({'message':'회원가입 성공','user':user})
+        return res.status(200).json({'message':'회원가입 성공',user:user.toJoinJson(user)})
     }).catch(next);
 };
 
@@ -68,6 +68,9 @@ var update=(req,res,next)=>{
         if(typeof req.body.user.intro!=='undefined'){
             user.intro=req.body.user.intro;
         }
+        if(typeof req.body.user.image!=='undefined'){
+            user.image=req.body.user.image;
+        }
 
         return User.findOneAndUpdate({_id:req.payload.id},user).then(function(){
             return res.json({user:user.toProfileJSONFor(user)});
@@ -76,22 +79,24 @@ var update=(req,res,next)=>{
 }
 
 var refreshAuth=(req,res)=>{
-    let refreshToken=req.body.refreshToken;ㅇ
+    if (req.headers.authorization && req.headers.refresh.split(' ')[0]==='Token'||
+    req.headers.authorization && req.headers.refresh.split(' ')[0]==='Bearer'){
+        var refreshToken=req.headers.authorization.split(' ')[1];
+        // let refreshToken=req.body.refreshToken;
 
-    if(!refreshToken){
-        return res.status(401);
-    }
-
-    Jwt.verify(refreshToken,secret,(error,user)=>{
-        if(error){
-            return res.status(403);
+        if(!refreshToken){
+            return res.status(401);
         }
 
-        var token=new User().generateJWT();
-        res.json({token});
-
-    });
-    return token;
+        Jwt.verify(refreshToken,secret,(error,user)=>{
+            if(error){
+                return res.status(403);
+            }
+            var token=user.generateJWT();
+            res.json({token});
+        });
+        return token;
+    }return null;
 }
 
 var searchUser = (req, res)=>{
@@ -112,17 +117,18 @@ var userdelete=(req,res)=>{
             value=user.userDelete(req.user.id)
             if(value) return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
         }
-        return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
+        return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요.",'status':'403'})
     })
 }   
 
 router.post('/',create);
 router.post('/login',login);
-router.get('/', list); 
+router.get('/', list); // 개발용
 
 router.use(auth.required);
 router.put('/',update);
-router.delete('/',userdelete);
+router.delete('/',userdelete); //개발용
 router.get('/searchuser',searchUser);
+router.post('/refresh',refreshAuth)
 
 module.exports = router;

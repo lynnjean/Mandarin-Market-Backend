@@ -16,15 +16,9 @@ router.param('accountname',(req,res,next,accountname)=>{
 })
 
 var account=(req,res,next)=>{
-    if(req.payload){
-        User.findById(req.payload.id).then((user)=>{
-            if(!user){
-                return res.json({profile:req.profile.toProfileJSONFor(false)});
-            } return res.json({profile:req.profile.toProfileJSONFor(user)})
-        });
-    }else{
-        return res.json({profile:req.profile.toProfileJSONFor(false)});
-    }
+    User.findById(req.payload.id).then((user)=>{
+        return res.json({profile:req.profile.toProfileJSONFor(user)})
+    });
 }
 
 var followlist=async(req,res,next)=>{
@@ -44,17 +38,6 @@ var followlist=async(req,res,next)=>{
     return res.json(user.following.map((user)=>user.toProfileJSONFor()))
 }
 
-var unfollow= async (req,res,next)=>{
-    var profileId=req.profile.id;
-    const user =  await User.findById(req.payload.id);
-    if (!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
-    user.unfollow(profileId)
-    req.profile.removeFollower(req.payload.id)
-    await User.findByIdAndUpdate(req.payload.id, user)
-    await User.findByIdAndUpdate(profileId, req.profile)
-    return res.json({profile:req.profile.toProfileJSONFor()})
-}
-
 var follows= async (req,res,next)=>{
     var profileId=req.profile.id;
     const user =  await User.findById(req.payload.id);
@@ -64,13 +47,21 @@ var follows= async (req,res,next)=>{
     await User.findByIdAndUpdate(req.payload.id, user)
     await User.findByIdAndUpdate(profileId, req.profile)
     return res.json({profile:req.profile.toProfileJSONFor()})
-  };
+};
+
+var unfollow= async (req,res,next)=>{
+    var profileId=req.profile.id;
+    const user =  await User.findById(req.payload.id);
+    user.unfollow(profileId)
+    req.profile.removeFollower(req.payload.id)
+    await User.findByIdAndUpdate(req.payload.id, user)
+    await User.findByIdAndUpdate(profileId, req.profile)
+    return res.json({profile:req.profile.toProfileJSONFor()})
+}
   
 router.use(auth.required);
 router.get('/:accountname',auth.optional,account);
 router.post('/:accountname/follow',follows);
-// router.get('/:accountname',auth.optional,account);
-// router.get('/:accountname/follow',followlist);
 router.delete('/:accountname/unfollow', unfollow);
 router.get('/:accountname/follow',followlist);
 

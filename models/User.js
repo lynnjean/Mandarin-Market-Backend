@@ -45,6 +45,17 @@ UserSchema.methods.refreshJWT= function (){
     return jwt.sign({},secret,{expiresIn:'14d'})
 }
 
+UserSchema.methods.toJoinJson= function(user){
+    return {
+        _id:this._id,
+        username:this.username,
+        email:this.email,
+        accountname:this.accountname,
+        intro:this.intro,
+        image:this.image || '/uploadFiles/Ellipse.png'
+    }
+}
+
 UserSchema.methods.toAuthJson= function(user){
     return {
         _id:this._id,

@@ -30,7 +30,7 @@ var auth={
         userProperty:'payload',
         getToken:getTokenFromHeader,
         algorithms: ['sha1', 'RS256', 'HS256'],
-        expiresIn:'1h'
+        expiresIn:'2000h'
     }),
     optional:jwt({
         secret:secret,
@@ -38,7 +38,7 @@ var auth={
         credentialsRequired:false, //권한 요구할 필요 없음
         getToken:getTokenFromHeader,
         algorithms: ['sha1', 'RS256', 'HS256'],
-        expiresIn:'1h'
+        expiresIn:'2000h'
     })
 };
 

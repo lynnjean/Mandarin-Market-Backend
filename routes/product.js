@@ -66,7 +66,7 @@ const productUpdate=function (req,res,next){
             req.product.save().then(function(product){
                 return res.json({product:product.toProductJSONFor(user)})                
             }).catch(next);
-        }else return res.status(403);
+        }return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
     })
 }
 
@@ -78,7 +78,7 @@ const productremove=function (req,res,next){
                 .then(function(){
                     res.status(204);
                 });
-        } else return res.status(403);
+        } return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
     })
 }
 

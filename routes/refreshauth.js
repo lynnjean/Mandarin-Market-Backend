@@ -3,13 +3,11 @@ var secret = require('../config').secret;
 var Jwt=require('jsonwebtoken');
 
 function refreshGetTokenFromHeader(req,res,next){
-    console.log(req.headers.authorization)
     if (req.headers.authorization && req.headers.refresh.split(' ')[0]==='Token'||
     req.headers.authorization && req.headers.refresh.split(' ')[0]==='Bearer'){
         var refreshToken=req.headers.authorization.split(' ')[1];
 
         if(!refreshToken){
-            console.log(error)
             return res.status(401);
         }
 

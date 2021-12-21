@@ -9,13 +9,12 @@ const { post } = require('./profile');
 var router=express.Router();
 
 router.param('post', async function(req, res, next, postId) {
-  Post.findOne({ _id: postId})
+  Post.findById(postId)
     .populate('author')
     .then(function(post) {
-      if (!post) return res.status(404).json({'message':"존재하지 않는 게시글입니다.",'status':404});
       req.post = post;
       return next();
-    }).catch(next);
+    }).catch(()=>{return res.status(404).json({'message':"존재하지 않는 게시글입니다.",'status':404})});
 });
 
 router.param('user', async function(req, res, next, userId) {
@@ -27,6 +26,8 @@ router.param('user', async function(req, res, next, userId) {
   return next()
 })
 
+
+
 const createPost = async function createPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = new Post(req.body.post)
@@ -36,21 +37,40 @@ const createPost = async function createPost(req, res, next) {
     return res.json({post:post.toJSONFor(user)})
 }
 
-// const getPosts = async function getPosts(req,res,){
-//   const limit = req.query.limit ? Number(req.query.limit):10 
-//   const skip = req.query.skip ? Number(req.query.skip):0
-//   const posts = await Post.find({}).sort({createdAt:'descending'}).skip(skip).limit(limit).populate('author');
-//   res.status('200').json({
-//       status: 'ok',
-//       data: posts.length,
-//       posts,
-//   })
-// }
+const getPosts = async function getPosts(req,res){
+  const limit = req.query.limit ? Number(req.query.limit):10 
+  const skip = req.query.skip ? Number(req.query.skip):0
+  const posts = await Post.find({}).sort({createdAt:'descending'}).skip(skip).limit(limit).populate('author');
+  res.status('200').json({
+      data: posts.length,
+      posts,
+  })
+}
 
 const getPostById = async function getPost(req, res, next) {
   const user = await User.findById(req.payload.id)
   await req.post.populate('author')
   return res.json({post: req.post.toJSONFor(user)})
+}
+
+router.param('accountname',(req,res,next,accountname)=>{
+  User.findOne({accountname:accountname}).then((user)=>{
+      if (!user) return res.status(404).json({'message':"해당 계정이 존재하지 않습니다.",'status':'404'});
+      req.user=user;
+      next();
+  }).catch(next);
+})
+
+const userPost = async function userPost(req, res, next) {
+  await User.findById(req.payload.id).then((user)=>{
+    Post.find({}).populate('author').then((post)=>{
+      post.map(post=>{
+        if(req.user.id.toString() === post.author._id.toString())
+          return res.status(200).json({post:post.toJSONFor(user)})
+        else return res.status(404).json({'message':"게시글이 존재하지 않습니다.",'status':404});
+      })
+    })
+  })
 }
 
 const updatePost = async function updatePost(req, res, next){
@@ -68,7 +88,7 @@ const getFeed = async function getPostByFollowing(req,res){
   const skip = req.query.skip ? Number(req.query.skip):0
   const user = await User.findById(req.payload.id)
   const posts = await Post.find({ author:{$in: user.following}}).sort({createdAt:'descending'}).limit(limit).skip(skip).populate('author')
-  return res.status(200).json({posts: posts.map(post=>post.toJSONFor())})
+  return res.status(200).json({posts: posts.map(post=>post.toJSONFor(user))})
 }
 
 const removePost = async function removePost(req, res,){
@@ -84,7 +104,6 @@ const postReport=(req,res,next)=>{
     if(!user) return res.status(401).json({'message':'존재하지 않는 유저 입니다.','status':'401'});
     var report = new Report();
     report.post = req.post._id;
-
     report.save()
     return res.json({report: report.toJSONFor(user)});
   }).catch(next);
@@ -93,9 +112,10 @@ const postReport=(req,res,next)=>{
 router.use(auth.required) 
 
 router.post('/', createPost);
-// router.get('/', getPosts); 
-router.get('/feed',getFeed);
-router.get('/:post', getPostById); 
+router.get('/', getPosts); //게시글 전체
+router.get('/feed',getFeed); //팔로우 게시글
+router.get('/:post', getPostById); //게시글 상세
+router.get('/:accountname/userpost',userPost)
 router.put('/:post', updatePost); 
 router.delete('/:post', removePost); 
 router.post('/:post/report',postReport)
