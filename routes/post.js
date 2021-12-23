@@ -64,7 +64,6 @@ const userPost = async function userPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = await Post.find({author:req.user}).limit(limit).skip(skip).sort({createdAt:'descending'}).populate('author')
     return res.status(200).json({post:post.map(post=>post.toJSONFor(user))})
-        
     } 
   catch (error) {
       next()

@@ -72,14 +72,14 @@ app.use((err,req,res,next)=>{
         }
     }
 
-    if (err.name==='UnauthorizedError'){   
-        return res.status(401).json({'message':"존재하지 않는 유저입니다. 로그인을 해주세요. 토큰을 입력해주세요.",'status':401})
-    }
+    // if (err.name==='UnauthorizedError'){   
+    //     return res.status(401).json({'message':"존재하지 않는 유저입니다. 로그인을 해주세요. 토큰을 입력해주세요.",'status':401})
+    // }
     return next(err);
 })
 
 app.use((err,req,res,next)=>{
-    res.status(err.status||500).json(err)
+    res.status(err.status).json(err)
     return next(err);
 })
 
