@@ -38,7 +38,7 @@ UserSchema.methods.generateJWT= function (){
     return jwt.sign({
         id:this._id,
         exp:parseInt(exp.getTime()/1000),
-    },secret)
+    },secret,{expiresIn:'1h'})
 };
 
 UserSchema.methods.refreshJWT= function (){
@@ -98,7 +98,7 @@ UserSchema.methods.toProfileJSONFor= function(user){
         username:this.username,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image,
+        image:this.image || '/uploadFiles/Ellipse.png',
         following:this.following,
         follower:this.follower,
         followerCount:this.follower.length,

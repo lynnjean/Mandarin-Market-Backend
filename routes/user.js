@@ -12,7 +12,7 @@ var jwt=require('express-jwt');
 
 var router=express.Router();
  
-var list=(req,res,next)=>{
+var list= (req,res,next)=>{
     User.find({}).then((user)=>{
         return res.json(user);
     }).catch(next);
@@ -25,13 +25,8 @@ var login=(req,res,next)=>{
 
     passport.authenticate('local',{session:false}, (err,user,info)=>{
         if (err) return next(err);
-        if (user){
-            var token=user.generateJWT();
-            var refreshToken=user.refreshJWT();
-            return res.json({user:user.toAuthJson()})
-        }else {
-            return res.status(422).json("이메일 또는 비밀번호가 일치하지 않습니다.");
-        }
+        if (user) return res.json({user:user.toAuthJson()})
+        else return res.json(info);
     })(req,res,next);
 };
   
@@ -123,11 +118,11 @@ var userdelete=(req,res)=>{
 
 router.post('/',create);
 router.post('/login',login);
-router.get('/', list); // 개발용
+router.get('/', list);
 
 router.use(auth.required);
 router.put('/',update);
-router.delete('/',userdelete); //개발용
+router.delete('/',userdelete);
 router.get('/searchuser',searchUser);
 router.post('/refresh',refreshAuth)
 

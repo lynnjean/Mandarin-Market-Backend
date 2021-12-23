@@ -71,6 +71,10 @@ app.use((err,req,res,next)=>{
             return res.status(422).json({'message':'이미 사용중인 계정 ID입니다.','status':422})
         }
     }
+
+    if (err.name==='UnauthorizedError'){   
+        return res.status(401).json({'message':"존재하지 않는 유저입니다. 로그인을 해주세요. 토큰을 입력해주세요.",'status':401})
+    }
     return next(err);
 })
 
@@ -82,6 +86,5 @@ app.use((err,req,res,next)=>{
 app.listen(5050,()=>{
     var dir='./uploadFiles';
     if(!fs.existsSync(dir)) fs.mkdirSync(dir);
-    
     console.log('start server')
 });

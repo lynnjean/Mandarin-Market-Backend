@@ -22,20 +22,25 @@ var account=(req,res,next)=>{
 }
 
 var followlist=async(req,res,next)=>{
-    var limit=10;
-    var offset=0;
-    var profileId=req.profile.id;
-
-    if (typeof req.query.limit!=='undefined'){
-        limit=req.query.limit;
-    }
-    if (typeof req.query.offset!=='undefined'){
-        offset=req.query.offset;
-    }
-    const user = await User.findById(req.payload.id).limit(Number(limit)).skip(Number(offset)).populate('following')
-
+    const limit = req.query.limit ? Number(req.query.limit):10
+    const skip = req.query.skip ? Number(req.query.skip):0
+    const user = await User.findById(req.payload.id).populate('following')
     if(!user) return res.status(401);
-    return res.json(user.following.map((user)=>user.toProfileJSONFor()))
+
+    Promise.resolve(req.payload ? User.findById(req.payload.id) : null).then(function(user){
+        return user.populate({
+          path: 'following',
+          populate: {
+            path: 'following'
+          },
+          options: {
+            limit:limit,
+            skip:skip
+          }
+        }).then(function(user) {
+            return res.json(user.following.map((user)=>user.toProfileJSONFor()))
+          });
+      }).catch(next);
 }
 
 var follows= async (req,res,next)=>{
@@ -59,7 +64,6 @@ var unfollow= async (req,res,next)=>{
     return res.json({profile:req.profile.toProfileJSONFor()})
 }
   
-router.use(auth.required);
 router.get('/:accountname',auth.optional,account);
 router.post('/:accountname/follow',follows);
 router.delete('/:accountname/unfollow', unfollow);

@@ -18,6 +18,7 @@ ProductSchema.methods.toProductJSONFor = function(user){
         itemName:this.itemName,
         price: this.price,
         link:this.link,
+        itemImage:this.itemImage,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
         author: this.author.toProfileJSONFor(this.author)
