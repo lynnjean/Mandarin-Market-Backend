@@ -1,0 +1,41 @@
+{
+  "name": "mandarin",
+  "version": "1.0.0",
+  "description": "감귤마켓 프로토타입",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weniv/mandarin.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/weniv/mandarin/issues"
+  },
+  "homepage": "https://github.com/weniv/mandarin#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "ejs": "^3.1.6",
+    "errorhandler": "^1.5.1",
+    "express": "^4.17.1",
+    "express-jwt": "^6.1.0",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^8.5.1",
+    "method-override": "^3.0.0",
+    "methods": "^1.1.2",
+    "mongoose": "^6.0.12",
+    "mongoose-sequence": "^5.3.1",
+    "mongoose-unique-validator": "^3.0.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.3",
+    "passport": "^0.5.0",
+    "passport-local": "^1.0.0",
+    "path": "^0.12.7",
+    "redis": "^4.0.0"
+  }
+}
