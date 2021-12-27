@@ -8,9 +8,13 @@ var fs = require('fs'),
     errorhandler = require('errorhandler'),
     mongoose = require('mongoose'),
     morgan=require('morgan'),
-    multer = require('multer');
+    multer = require('multer'),
+    socketio = require("socket.io");
 
 var app=express();
+var server = http.createServer(app); //서버 생성 메소드(createServer)를 제공하며 파라미터로 express를 넘겨줌
+//server 변수에 담은 이유? ttp.createServer() 메소드는 서버를 생성하는 작업을 하고 난 후 생성한 서버 객체를 리턴해줍니다. 생성된 서버를 제어하기 위해 server 변수에 담는 것입니다.
+var io = socketio(server);
 
 app.use(morgan('dev'));
 app.use(cors());
@@ -31,6 +35,13 @@ require('./models/Comment');
 require('./models/Product');
 require('./models/Report');
 require('./config/passport');
+
+io.sockets.on("connection", (socket) => {
+    socket.on("message", (data) => {
+        console.log(data)
+        io.sockets.emit("message", data); //메시지 저장
+    });
+});
 
 app.use(require('./routes'))
 
@@ -71,17 +82,25 @@ app.use((err,req,res,next)=>{
             return res.status(422).json({'message':'이미 사용중인 계정 ID입니다.','status':422})
         }
     }
+
+    if (err.code==='credentials_required'){   
+        return res.status(401).json({'message':"토큰이 없습니다.",'status':401})
+    }
+
+    if (err.code==='invalid_token'){   
+        return res.status(401).json({'message':"유효하지 않은 토큰입니다.",'status':401})
+    }
+
     return next(err);
 })
 
 app.use((err,req,res,next)=>{
-    res.status(err.status||500).json(err)
+    res.json(err)
     return next(err);
 })
 
-app.listen(5050,()=>{
+server.listen(8080,()=>{
     var dir='./uploadFiles';
     if(!fs.existsSync(dir)) fs.mkdirSync(dir);
-    
     console.log('start server')
 });

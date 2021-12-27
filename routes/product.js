@@ -1,19 +1,17 @@
-var mongoose = require('mongoose')
-var Product = mongoose.model('Product')
-var User = mongoose.model('User')
+var mongoose = require('mongoose');
+var Product = mongoose.model('Product');
+var User = mongoose.model('User');
 var express=require('express');
 const auth = require('./auth');
 var router=express.Router();
 
 router.use(auth.required);
 
-router.param('product',function(req,res,next,_id){
-    Product.findById({_id:_id}).populate('author')
-    .then((product)=>{
-        if(!product) return res.status(404).json({'message':'등록된 상품이 없습니다.','status':'404'});
+router.param('product',function(req,res,next,itemid){
+    Product.findById(itemid).populate('author').then(function(product){
         req.product=product;
-        next();
-    }).catch(next);
+        return next();
+    }).catch(()=>{return res.status(404).json({'message':'등록된 상품이 없습니다.','status':'404'})});
 })
 
 const create = async function createProduct(req, res, next) {
@@ -33,7 +31,7 @@ const productlist = async (req,res,next)=>{
     const product = await Product.find({}).sort({createdAt:'descending'}).limit(limit).skip(skip).populate('author');
 
     res.status('200').json({
-        count:product.length,
+        data:product.length,
         product,
     })
 }
@@ -56,9 +54,9 @@ const productremove= async function (req,res,next){
     return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
 }
 
-router.get('/', productlist); //0
-router.post('/',create); //0
-router.put('/:product',productUpdate); //0
-router.delete('/:product',productremove); //0
+router.get('/', productlist);
+router.post('/',create); 
+router.put('/:product',productUpdate); 
+router.delete('/:product',productremove); 
 
 module.exports = router;

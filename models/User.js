@@ -13,7 +13,6 @@ var UserSchema = new mongoose.Schema({
     hearts:[{type:mongoose.Schema.Types.ObjectId,ref:'Post'}],
     following:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
     follower:[{type:mongoose.Schema.Types.ObjectId, ref:'User' }],
-    // followerCount:{type:Number, default: 0},
     hash:{type:String},
     salt:{type:String}
 },{timestamps:true});
@@ -38,7 +37,7 @@ UserSchema.methods.generateJWT= function (){
     return jwt.sign({
         id:this._id,
         exp:parseInt(exp.getTime()/1000),
-    },secret,{expiresIn:'1h'})
+    },secret)
 };
 
 UserSchema.methods.refreshJWT= function (){
@@ -98,7 +97,7 @@ UserSchema.methods.toProfileJSONFor= function(user){
         username:this.username,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image|| '/uploadFiles/Ellipse.png',
+        image:this.image || '/uploadFiles/Ellipse.png',
         following:this.following,
         follower:this.follower,
         followerCount:this.follower.length,

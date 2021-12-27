@@ -2,22 +2,16 @@ var jwt=require('express-jwt');
 var secret = require('../config').secret;
 var Jwt=require('jsonwebtoken');
 
-function getTokenFromHeader(req,res,next){
+const getTokenFromHeader=function(req,res,next){
+    if(!req.headers.authorization) return console.log('토큰이 없습니다');
+
     if (req.headers.authorization && req.headers.authorization.split(' ')[0]==='Token'||
     req.headers.authorization && req.headers.authorization.split(' ')[0]==='Bearer'){
-        let token= req.headers.authorization.split(' ')[1];
-
-        if(!token){
-            console.log(error)
-            return res.status(400);
-        }
-
-        Jwt.verify(token,secret,(error,user)=>{
-            if(error){
-                console.log(error);
-                return res.status(403);
-            }
-            req.user=user;
+        const token= req.headers.authorization.split(' ')[1];
+        
+        Jwt.verify(token,secret,(err,decoded)=>{
+            if(err) return console.log('유효하지 않은 토큰입니다.');
+            req.decoded=decoded;
             next;
         });
         return token;
@@ -41,5 +35,4 @@ var auth={
         expiresIn:'2000h'
     })
 };
-
-module.exports=auth;
+module.exports= auth;

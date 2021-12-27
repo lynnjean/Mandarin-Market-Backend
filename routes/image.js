@@ -24,7 +24,7 @@ var upload=multer({
     },fileFilter:function(req,file,callback){
         ext=['.jpg','.gif','.png','.jpeg','.bmp','.tif'];
 
-        var index = ext.indexOf(path.extname(file.originalname));
+        var index = ext.indexOf(path.extname(file.originalname).toLowerCase());
         if (index !== -1)
             callback(null,true)
         else return callback({message:"이미지 파일만 업로드가 가능합니다."},false)

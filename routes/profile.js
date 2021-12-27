@@ -25,23 +25,22 @@ var followlist=async(req,res,next)=>{
     const limit = req.query.limit ? Number(req.query.limit):10
     const skip = req.query.skip ? Number(req.query.skip):0
     const user = await User.findById(req.payload.id).populate('following')
-
-    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
+    if(!user) return res.status(401);
 
     Promise.resolve(req.payload ? User.findById(req.payload.id) : null).then(function(user){
         return user.populate({
-            path: 'following',
-            populate: {
+          path: 'following',
+          populate: {
             path: 'following'
-            },
-            options: {
+          },
+          options: {
             limit:limit,
             skip:skip
-            }
+          }
         }).then(function(user) {
             return res.json(user.following.map((user)=>user.toProfileJSONFor()))
-            });
-        }).catch(next);
+          });
+      }).catch(next);
 }
 
 var follows= async (req,res,next)=>{
@@ -65,7 +64,6 @@ var unfollow= async (req,res,next)=>{
     return res.json({profile:req.profile.toProfileJSONFor()})
 }
   
-router.use(auth.required);
 router.get('/:accountname',auth.optional,account);
 router.post('/:accountname/follow',follows);
 router.delete('/:accountname/unfollow', unfollow);

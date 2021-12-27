@@ -19,14 +19,14 @@ router.param('post', async function(req, res, next, postId) {
 
 router.param('user', async function(req, res, next, userId) {
     const user = await User.findById(userId)
-    if(!user) return res.status(404).json({'message':"존재하지 않는 유저입니다.",'status':'404'})
+    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
     req.user = user
   return next()
 })
 
 const createPost = async function createPost(req, res, next) {
     const user = await User.findById(req.payload.id)
-    if(!user) return res.status(404).json({'message':"존재하지 않는 유저입니다.",'status':'404'})
+    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
     const post = new Post(req.body.post)
     if(!req.body.post.content&&!req.body.post.image) return res.status(422).json({'message':'내용 또는 이미지를 입력해주세요.','status':'422'})
     post.author = user
@@ -36,8 +36,7 @@ const createPost = async function createPost(req, res, next) {
 
 const getPosts = async function getPosts(req,res){
   const limit = req.query.limit ? Number(req.query.limit):10 
-  const skip = req.query.skip ? Number(req.query.skip):0
-  const posts = await Post.find({}).sort({createdAt:'descending'}).skip(skip).limit(limit).populate('author');
+
   res.status('200').json({
       data: posts.length,
       posts,
@@ -65,7 +64,6 @@ const userPost = async function userPost(req, res, next) {
     const user = await User.findById(req.payload.id)
     const post = await Post.find({author:req.user}).limit(limit).skip(skip).sort({createdAt:'descending'}).populate('author')
     return res.status(200).json({post:post.map(post=>post.toJSONFor(user))})
-
     } 
   catch (error) {
       next()
@@ -109,9 +107,9 @@ const postReport=(req,res,next)=>{
 }
 
 router.post('/', createPost);
-router.get('/', getPosts); //게시글 전체
-router.get('/feed',getFeed); //팔로우 게시글
-router.get('/:post', getPostById); //게시글 상세
+router.get('/', getPosts); 
+router.get('/feed',getFeed);
+router.get('/:post', getPostById);
 router.get('/:accountname/userpost',userPost)
 router.put('/:post', updatePost); 
 router.delete('/:post', removePost); 
@@ -122,13 +120,13 @@ var hearton=(req,res,next)=>{
   var postId=req.post.id;
   
   User.findById(req.payload.id).then(function(user){
-    if(!user) return res.status(401).json({'message':'존재하지 않는 유저입니다.','status':'401'});
+      if(!user) return res.status(401).json({'message':'존재하지 않는 유저입니다.','status':'401'});
 
-    return user.heart(postId).then(function(){
-        return req.post.updateHeartCount().then(function(post){
-            return res.json({post:req.post.toJSONFor(user)});
-        });
-    });
+      return user.heart(postId).then(function(){
+         return req.post.updateHeartCount().then(function(post){
+              return res.json({post:req.post.toJSONFor(user)});
+         });
+      });
   }).catch(next);
 };
 
@@ -151,11 +149,10 @@ router.delete('/:post/unheart',unheart); //0
 //comment
 router.param('comment', function(req, res, next, id) {
     Comment.findById(id).then(function(comment){
-      if(!comment) return res.status(404).json({'message':'댓글이 존재하지 않습니다.','status':'404'})
       req.comment = comment;
       return next();
     }).catch(()=>{return res.status(404).json({'message':'댓글이 존재하지 않습니다.','status':'404'})});
-});
+  });
 
 var commentlist=function(req, res, next){
   const limit = req.query.limit ? Number(req.query.limit):10
@@ -182,32 +179,28 @@ var commentlist=function(req, res, next){
 };
 
 var comment=function(req, res, next) {
-  User.findById(req.payload.id).then(function(user){
-    if (!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
+    User.findById(req.payload.id).then(function(user){
+      if(!user) return res.status(401).json({'message':'존재하지 않는 유저입니다.','status':'401'});
 
-    var comment = new Comment(req.body.comment);
-  
-    comment.post = req.post;
-    comment.author = user;
+      var comment = new Comment(req.body.comment);
+    
+      comment.post = req.post;
+      comment.author = user;
 
-    return comment.save().then(function(){
-      req.post.comments.push(comment);
+      return comment.save().then(function(){
+        req.post.comments.push(comment);
 
-      return req.post.save().then(function(post) {
-          res.json({comment: comment.toJSONFor(user)});
+        return req.post.save().then(function(post) {
+            res.json({comment: comment.toJSONFor(user)});
       });
     });
   }).catch(next);
 };
 
-var uncomment= function(req, res, next) {
+var uncomment= async function(req, res, next) {
   if(req.comment.author.toString() === req.payload.id.toString()){
-      req.post.comments.remove(req.comment._id);
-      req.post.save()
-      .then(Comment.find({_id: req.comment._id}).remove().exec())
-      .then(function(){
-          res.status(204).json({'message':'댓글이 삭제되었습니다.','status':'204'});
-      });
+      Comment.find({_id: req.comment._id}).remove().exec()
+      return res.status(200).json({'message':'댓글이 삭제되었습니다.','status':'200'});
   } else {
       res.status(403).json({'message':'댓글 작성자만 댓글을 삭제할 수 있습니다.','status':'403'});
   }
@@ -218,7 +211,6 @@ const commentReport=(req,res,next)=>{
     if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
     var report = new Report();
     report.comment = req.comment._id;
-
     report.save()
     return res.json({report: report.toJSONFor(user)});
   }).catch(next);
