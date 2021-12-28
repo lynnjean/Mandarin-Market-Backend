@@ -18,29 +18,29 @@ router.param('post', async function(req, res, next, postId) {
 });
 
 router.param('user', async function(req, res, next, userId) {
-    const user = await User.findById(userId)
-    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
-    req.user = user
-  return next()
+  const user = await User.findById(userId)
+  if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
+  req.user = user
+return next()
 })
 
 const createPost = async function createPost(req, res, next) {
-    const user = await User.findById(req.payload.id)
-    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
-    const post = new Post(req.body.post)
-    if(!req.body.post.content&&!req.body.post.image) return res.status(422).json({'message':'내용 또는 이미지를 입력해주세요.','status':'422'})
-    post.author = user
-    await post.save()
-    return res.status(200).json({post:post.toJSONFor(user)})
+  const user = await User.findById(req.payload.id)
+  if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
+  const post = new Post(req.body.post)
+  if(!req.body.post.content&&!req.body.post.image) return res.status(422).json({'message':'내용 또는 이미지를 입력해주세요.','status':'422'})
+  post.author = user
+  await post.save()
+  return res.status(200).json({post:post.toJSONFor(user)})
 }
 
 const getPosts = async function getPosts(req,res){
-  const limit = req.query.limit ? Number(req.query.limit):10 
+const limit = req.query.limit ? Number(req.query.limit):10 
 
-  res.status('200').json({
-      data: posts.length,
-      posts,
-  })
+res.status('200').json({
+    data: posts.length,
+    posts,
+})
 }
 
 const getPostById = async function getPost(req, res, next) {
@@ -113,7 +113,7 @@ router.get('/:post', getPostById);
 router.get('/:accountname/userpost',userPost)
 router.put('/:post', updatePost); 
 router.delete('/:post', removePost); 
-router.post('/:post/report',postReport)
+router.post('/:post/report',postReport);
 
 //heart
 var hearton=(req,res,next)=>{
