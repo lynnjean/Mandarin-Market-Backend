@@ -118,11 +118,11 @@ UserSchema.methods.addFollower = function(id) {
     }
     return this.updateOne({id:this._id},{follower:this.follower},);
 }
-
 UserSchema.methods.removeFollower = function(id){
     this.follower.remove(id);
     return this.updateOne({id:this._id},{follower:this.follower},);
 }
+
 UserSchema.methods.unfollow=function(id){
     this.following.remove(id);
     return this.updateOne({id:this._id},{following:this.following},);
