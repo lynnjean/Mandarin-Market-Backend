@@ -9,7 +9,7 @@
             	// socket 연결
                 socket = io.connect('/');
 
-			// message 수신 이벤트
+			    // message 수신 이벤트
                 socket.on('message', data => {
                     // makeChatDiv(data.name, data.content, data.date);
                     makeChatDiv(data.content, data.date);

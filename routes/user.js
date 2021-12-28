@@ -108,8 +108,14 @@ var userdelete=(req,res)=>{
     User.findById(req.payload.id).then(function(user){
         if (!user) return res.status(401).json("존재하지 않는 유저입니다.");
 
-        if(req.payload.id.toString() === req.user.id.toString()){
-            value=user.userDelete(req.user.id)
+        if(req.payload.id.toString() === user.id.toString()){
+            User.findById(user.follower).then((follower)=>{
+                follower.unfollow(req.payload.id)                
+                console.log(follower)
+                User.findByIdAndUpdate(follower.id,follower)
+                console.log(follower)
+            })
+            value=user.userDelete(user.id)
             if(value) return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
         }
         return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요.",'status':'403'})

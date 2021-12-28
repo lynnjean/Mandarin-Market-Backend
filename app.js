@@ -9,7 +9,10 @@ var fs = require('fs'),
     mongoose = require('mongoose'),
     morgan=require('morgan'),
     multer = require('multer'),
-    socketio = require("socket.io");
+    socketio = require("socket.io"),    
+    session = require('express-session');
+
+// var MongoStore = require('connect-mongo')(session);
 
 var app=express();
 var server = http.createServer(app); //서버 생성 메소드(createServer)를 제공하며 파라미터로 express를 넘겨줌
@@ -28,6 +31,17 @@ db.on('error', console.error.bind(console, 'connection error: '));
 db.once('open', function callback() {
     console.log('db connection');
 });
+
+// var mongoStore=new MongoStore({
+//     db:db.connection.db
+// })
+
+// app.use(session({
+//     saveUninitialized:true,
+//     resave:true,
+//     secret:config.sessionSecret,
+//     store:mongoStore
+// }))
 
 require('./models/User');
 require('./models/Post');

@@ -84,6 +84,7 @@ const getFeed = async function getPostByFollowing(req,res){
   const limit = req.query.limit ? Number(req.query.limit):10 
   const skip = req.query.skip ? Number(req.query.skip):0
   const user = await User.findById(req.payload.id)
+  if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
   const posts = await Post.find({ author:{$in: user.following}}).sort({createdAt:'descending'}).limit(limit).skip(skip).populate('author')
   return res.status(200).json({posts: posts.map(post=>post.toJSONFor(user))})
 }

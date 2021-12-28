@@ -21,7 +21,7 @@ var account=(req,res,next)=>{
     });
 }
 
-var followlist=async(req,res,next)=>{
+var followinglist=async(req,res,next)=>{
     const limit = req.query.limit ? Number(req.query.limit):10
     const skip = req.query.skip ? Number(req.query.skip):0
     const user = await User.findById(req.payload.id).populate('following')
@@ -39,6 +39,28 @@ var followlist=async(req,res,next)=>{
           }
         }).then(function(user) {
             return res.json(user.following.map((user)=>user.toProfileJSONFor()))
+          });
+      }).catch(next);
+}
+
+var followerlist=async(req,res,next)=>{
+    const limit = req.query.limit ? Number(req.query.limit):10
+    const skip = req.query.skip ? Number(req.query.skip):0
+    const user = await User.findById(req.payload.id).populate('follower')
+    if(!user) return res.status(401);
+
+    Promise.resolve(user.id ? User.findById(user.id) : null).then(function(user){
+        return user.populate({
+          path: 'follower',
+          populate: {
+            path: 'follower'
+          },
+          options: {
+            limit:limit,
+            skip:skip
+          }
+        }).then(function(user) {
+            return res.json(user.follower.map((user)=>user.toProfileJSONFor()))
           });
       }).catch(next);
 }
@@ -67,6 +89,8 @@ var unfollow= async (req,res,next)=>{
 router.get('/:accountname',auth.optional,account);
 router.post('/:accountname/follow',follows);
 router.delete('/:accountname/unfollow', unfollow);
-router.get('/:accountname/follow',followlist);
+router.get('/:accountname/following',followinglist);
+router.get('/:accountname/follower',followerlist);
+
 
 module.exports=router;
