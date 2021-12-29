@@ -10,8 +10,8 @@ var fs = require('fs'),
     morgan=require('morgan'),
     multer = require('multer'),
     socketio = require("socket.io"),    
-    session = require('express-session'),
-    MongoStore = require('connect-mongo')(session),
+    // session = require('express-session'),
+    // MongoStore = require('connect-mongo')(session),
     config=require('./config');
 
 var app=express();
