@@ -77,12 +77,12 @@ UserSchema.methods.heart=function(id){
     if(this.hearts.indexOf(id)===-1){
         this.hearts.push(id);
     }
-    return this.updateOne({hearts:id},);
+    return this.update({hearts:this.hearts},);
 }
 
 UserSchema.methods.unhearts=function(id){
     this.hearts.remove(id);
-    return this.updateOne({hearts:this.hearts},);
+    return this.update({hearts:this.hearts},);
 }
 
 UserSchema.methods.ishearts=function(id){

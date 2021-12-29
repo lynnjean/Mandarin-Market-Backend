@@ -10,9 +10,9 @@ var fs = require('fs'),
     morgan=require('morgan'),
     multer = require('multer'),
     socketio = require("socket.io"),    
-    session = require('express-session');
-
-// var MongoStore = require('connect-mongo')(session);
+    session = require('express-session'),
+    MongoStore = require('connect-mongo')(session),
+    config=require('./config');
 
 var app=express();
 var server = http.createServer(app); //서버 생성 메소드(createServer)를 제공하며 파라미터로 express를 넘겨줌
@@ -26,14 +26,14 @@ app.use(express.json())
 app.use(require('method-override')());
 
 mongoose.connect('mongodb://127.0.0.1:27017/user');
-db = mongoose.connection;
+var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error: '));
 db.once('open', function callback() {
     console.log('db connection');
 });
 
 // var mongoStore=new MongoStore({
-//     db:db.connection.db
+//     mongooseConnection: mongoose.connection
 // })
 
 // app.use(session({
@@ -43,6 +43,7 @@ db.once('open', function callback() {
 //     store:mongoStore
 // }))
 
+// require('./config/socketio')(server, io, mongoStore);
 require('./models/User');
 require('./models/Post');
 require('./models/Comment');

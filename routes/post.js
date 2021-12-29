@@ -35,12 +35,14 @@ const createPost = async function createPost(req, res, next) {
 }
 
 const getPosts = async function getPosts(req,res){
-const limit = req.query.limit ? Number(req.query.limit):10 
+  const limit = req.query.limit ? Number(req.query.limit):10 
+  const skip = req.query.skip ? Number(req.query.skip):0
+  const posts = await Post.find({}).limit(limit).skip(skip).sort({createdAt:'descending'}).populate('author')
 
-res.status('200').json({
-    data: posts.length,
-    posts,
-})
+  res.status('200').json({
+      data: posts.length,
+      posts,
+  })
 }
 
 const getPostById = async function getPost(req, res, next) {
