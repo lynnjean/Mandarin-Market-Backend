@@ -24,15 +24,10 @@ var account=(req,res,next)=>{
 var followinglist=async(req,res,next)=>{
     const limit = req.query.limit ? Number(req.query.limit):10
     const skip = req.query.skip ? Number(req.query.skip):0
-    const user = await User.findById(req.payload.id).populate('following')
-    if(!user) return res.status(401);
 
-    Promise.resolve(req.payload ? User.findById(req.payload.id) : null).then(function(user){
+    Promise.resolve(req.profile.id ? User.findById(req.profile.id) : null).then(function(user){
         return user.populate({
           path: 'following',
-          populate: {
-            path: 'following'
-          },
           options: {
             limit:limit,
             skip:skip
@@ -46,15 +41,10 @@ var followinglist=async(req,res,next)=>{
 var followerlist=async(req,res,next)=>{
     const limit = req.query.limit ? Number(req.query.limit):10
     const skip = req.query.skip ? Number(req.query.skip):0
-    const user = await User.findById(req.payload.id).populate('follower')
-    if(!user) return res.status(401);
 
-    Promise.resolve(user.id ? User.findById(user.id) : null).then(function(user){
+    Promise.resolve(req.profile.id ? User.findById(req.profile.id) : null).then(function(user){
         return user.populate({
           path: 'follower',
-          populate: {
-            path: 'follower'
-          },
           options: {
             limit:limit,
             skip:skip
