@@ -1,17 +1,36 @@
-var express = require('express');
-const fs = require('fs');
-var mongoose = require('mongoose');
-var User = mongoose.model('User');
+// var express=require('express'),
+//  fs = require('fs'),
+//  socketio = require("socket.io"),
+//  server=require('../app');
 
-router=express.Router();
+// var io=socketio(server)
+// var router=express.Router();
 
-router.get("/", (req, res) => {
-    fs.readFile("./chat.html", (error, data) => {
-        if (error) return res.status(500).json(error);
-        res.writeHead(200, { "Content-Type": "text/html" });
-        console.log(data.name)
-        res.end(data);
-    });
-});
+// var chat=(req,res,next)=>{
+//     fs.readFile('HTMLPage.html',(error,data)=>{
+//         res.writeHead(200, {'Content-Type':'text/html'})
+//         res.end(data)
+//     })
+// }
+// function name(io) {
+    
+// }
+// io.socket.on('connection',(socket)=>{
+//     var roomName=null;
+//     socket.on('message',(data)=>{
+//         roomName=data;
+//         socket.join(data);
+//     })
 
-module.exports = router;
+//     socket.on('message',(data)=>{
+//         io.socket.in(roomName).emit('message',data)
+//         console.log(data);
+//     })
+
+//     socket.on('image',(data)=>{
+//         io.socket.in(roomName).emit('image',data)
+//         console.log(data);
+//     })
+// })
+
+// module.exports = router;

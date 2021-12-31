@@ -47,7 +47,7 @@ var create=function(req,res,next){
     
     user.save().then(()=>{
         return res.status(200).json({'message':'회원가입 성공',user:user.toJoinJson(user)})
-    }).catch(next);
+    }).catch(next)
 };
 
 var update=(req,res,next)=>{
@@ -130,6 +130,6 @@ router.use(auth.required);
 router.put('/',update);
 router.delete('/',userdelete);
 router.get('/searchuser',searchUser);
-router.post('/refresh',refreshAuth)
+router.post('/refresh',refreshAuth);
 
 module.exports = router;

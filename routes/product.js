@@ -16,13 +16,19 @@ router.param('product',function(req,res,next,itemid){
 
 const create = async function createProduct(req, res, next) {
     const user = await User.findById(req.payload.id)
-    const product = new Product(req.body.product)
     if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
+    const product = new Product(req.body.product)
+    if(!req.body.product) return res.status(200).json({'message':"잘못된 접근입니다.",'status':200})
     if (!req.body.product.itemName||!req.body.product.price||!req.body.product.itemImage||!req.body.product.link) return res.status(422).json({'message':"필수 입력사항을 입력해주세요.",'status':'422'});
     if(typeof(req.body.product.price)==='string') return res.status(422).json({'message':'가격은 숫자로 입력하셔야 합니다.','status':'422'});
     product.author = user
-    await product.save()
-    return res.json({product:product.toProductJSONFor(user)})
+    try{
+        await product.save()
+        return res.json({product:product.toProductJSONFor(user)})
+    }
+    catch(error){
+        next;
+    }
 }
 
 const productlist = async (req,res,next)=>{

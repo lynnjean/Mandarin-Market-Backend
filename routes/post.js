@@ -28,10 +28,16 @@ const createPost = async function createPost(req, res, next) {
   const user = await User.findById(req.payload.id)
   if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
   const post = new Post(req.body.post)
-  if(!req.body.post.content&&!req.body.post.image) return res.status(422).json({'message':'내용 또는 이미지를 입력해주세요.','status':'422'})
+  if(!req.body.post||(!req.body.post.content&&!req.body.post.image)) return res.status(422).json({'message':'내용 또는 이미지를 입력해주세요.','status':'422'})
   post.author = user
-  await post.save()
-  return res.status(200).json({post:post.toJSONFor(user)})
+  try{
+    await post.save().then(()=>{
+      return res.status(200).json({post:post.toJSONFor(user)})
+    })
+  }
+  catch(error){
+    next;
+  }
 }
 
 const getPosts = async function getPosts(req,res){

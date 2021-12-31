@@ -9,15 +9,18 @@ var fs = require('fs'),
     mongoose = require('mongoose'),
     morgan=require('morgan'),
     multer = require('multer'),
-    socketio = require("socket.io"),    
+    socketio = require("socket.io"); 
     // session = require('express-session'),
     // MongoStore = require('connect-mongo')(session),
-    config=require('./config');
+    // config=require('./config');
 
 var app=express();
 var server = http.createServer(app); //서버 생성 메소드(createServer)를 제공하며 파라미터로 express를 넘겨줌
 //server 변수에 담은 이유? ttp.createServer() 메소드는 서버를 생성하는 작업을 하고 난 후 생성한 서버 객체를 리턴해줍니다. 생성된 서버를 제어하기 위해 server 변수에 담는 것입니다.
 var io = socketio(server);
+
+app.set('view engine','ejs');
+app.set('views','./views');
 
 app.use(morgan('dev'));
 app.use(cors());
@@ -32,36 +35,66 @@ db.once('open', function callback() {
     console.log('db connection');
 });
 
-// var mongoStore=new MongoStore({
-//     mongooseConnection: mongoose.connection
-// })
-
-// app.use(session({
-//     saveUninitialized:true,
-//     resave:true,
-//     secret:config.sessionSecret,
-//     store:mongoStore
-// }))
-
-// require('./config/socketio')(server, io, mongoStore);
 require('./models/User');
 require('./models/Post');
 require('./models/Comment');
 require('./models/Product');
 require('./models/Report');
+require('./models/ChatRoom');
 require('./config/passport');
-
-io.sockets.on("connection", (socket) => {
-    socket.on("message", (data) => {
-        console.log(data)
-        io.sockets.emit("message", data); //메시지 저장
-    });
-});
 
 app.use(require('./routes'))
 
 app.use(express.static('uploadFiles'));
 
+//socketio
+// var User = mongoose.model('User');
+var ChatRoom = mongoose.model('ChatRoom');
+// const auth = require('./routes/auth');
+
+app.post('/chat',async function(req,res){
+    const user=await User.findById(req.payload.id)
+    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
+    const chatroom = new ChatRoom(req.body.chatroom)
+    await chatroom.save()
+    return res.status(200).json({chatroom:chatroom.toChatJSONFor()})
+})
+
+app.get('/chatlist', async function(req,res) {
+    const rooms = await ChatRoom.find({})
+    return res.send(rooms)
+})
+
+app.get('/chat',async function(req,res){
+    let room=await ChatRoom.find({})
+
+    res.render('chat');
+
+    io.on('connection',(socket)=>{
+        console.log('a user connected')
+    
+        socket.on('disconnect',()=>{
+            console.log('user disconnected');
+        })
+    
+        socket.on('leaveRoom',(id, name)=>{
+            socket.leave(id)
+            io.to(id).emit('leaveRoom',id, name)
+        })
+    
+        socket.on('joinRoom',(id, name)=>{
+            socket.join(id)
+            io.to(id).emit('joinRoom', id, name)
+        })
+    
+        socket.on('chat message',(num, name, msg)=>{
+            io.to(room[num]).emit('chat message',name, msg);
+        })
+    })
+
+})
+
+// error
 app.use((req,res,next)=>{
     var err=new Error('Not Found')
     err.status=404;
@@ -105,7 +138,12 @@ app.use((err,req,res,next)=>{
     if (err.code==='invalid_token'){   
         return res.status(401).json({'message':"유효하지 않은 토큰입니다.",'status':401})
     }
-    
+
+    if(err.name==='TypeError'){
+        return res.status(200).json({'message':"잘못된 접근입니다.",'status':200})
+    }
+    console.log(err.name)
+
     return next(err);
 })
 
