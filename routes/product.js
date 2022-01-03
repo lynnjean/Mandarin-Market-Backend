@@ -31,6 +31,29 @@ const create = async function createProduct(req, res, next) {
     }
 }
 
+router.param('accountname',(req,res,next,accountname)=>{
+    User.findOne({accountname:accountname}).then((user)=>{
+        if (!user) return res.status(404).json({'message':"해당 계정이 존재하지 않습니다.",'status':'404'});
+        req.user=user;
+        next();
+    }).catch(next);
+  })
+
+const userproduct = async function userproduct(req,res,next){
+    const limit = req.query.limit ? Number(req.query.limit):10
+    const skip = req.query.skip ? Number(req.query.skip):0
+
+    try {
+      const user = await User.findById(req.payload.id)
+      const product = await Product.find({author:req.user}).limit(limit).skip(skip).sort({createdAt:'descending'}).populate('author');    
+      console.log(product)
+      return res.status(200).json({data:product.length,product:product.map(product=>product.toProductJSONFor(user))})
+    } 
+    catch (error) {
+        next()
+    }
+}
+
 const productlist = async (req,res,next)=>{
     const limit = req.query.limit ? Number(req.query.limit):10
     const skip = req.query.skip ? Number(req.query.skip):0
@@ -60,7 +83,8 @@ const productremove= async function (req,res,next){
     return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
 }
 
-router.get('/', productlist);
+router.get('/',productlist)
+router.get('/:accountname', userproduct);
 router.post('/',create); 
 router.put('/:product',productUpdate); 
 router.delete('/:product',productremove); 

@@ -97,8 +97,11 @@ const getFeed = async function getPostByFollowing(req,res){
   return res.status(200).json({posts: posts.map(post=>post.toJSONFor(user))})
 }
 
-const removePost = async function removePost(req, res,){
+const removePost = async function removePost(req, res,){  
   if(req.payload.id.toString() === req.post.author._id.toString()){
+      // const users=await User.find({hearts:req.post._id})
+      // users.map(user=>user.unhearts(req.post._id))
+      // console.log(user)
       await Post.findByIdAndDelete(req.post._id,req.body.post)
       return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
   }
