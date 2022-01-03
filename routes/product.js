@@ -65,6 +65,12 @@ const productlist = async (req,res,next)=>{
     })
 }
 
+const productInfo=async function (req,res,next){
+    const user = await User.findById(req.payload.id)
+    await req.product.populate('author')
+    return res.status(200).json({product: req.product.toProductJSONFor(user)})
+}
+
 const productUpdate=async function (req,res,next){
     if(req.payload.id.toString() === req.product.author._id.toString()){
         await Product.findByIdAndUpdate(req.product._id,req.body.product)
@@ -85,6 +91,7 @@ const productremove= async function (req,res,next){
 
 router.get('/',productlist)
 router.get('/:accountname', userproduct);
+router.get('/detail/:product/', productInfo);
 router.post('/',create); 
 router.put('/:product',productUpdate); 
 router.delete('/:product',productremove); 

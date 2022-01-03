@@ -97,13 +97,16 @@ const getFeed = async function getPostByFollowing(req,res){
   return res.status(200).json({posts: posts.map(post=>post.toJSONFor(user))})
 }
 
-const removePost = async function removePost(req, res,){  
+const removePost = async function removePost(req, res){  
   if(req.payload.id.toString() === req.post.author._id.toString()){
-      // const users=await User.find({hearts:req.post._id})
-      // users.map(user=>user.unhearts(req.post._id))
-      // console.log(user)
-      await Post.findByIdAndDelete(req.post._id,req.body.post)
-      return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
+    const user=await User.find({hearts:req.post._id})
+    user.map(async user=>{
+      await user.unhearts(req.post._id)
+      await User.findByIdAndUpdate(user._id, user)
+    })
+
+    await Post.findByIdAndDelete(req.post._id,req.body.post)
+    return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
   }
   return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
 }
@@ -169,6 +172,7 @@ router.param('comment', function(req, res, next, id) {
 var commentlist=function(req, res, next){
   const limit = req.query.limit ? Number(req.query.limit):10
   const skip = req.query.skip ? Number(req.query.skip):0
+  
   Promise.resolve(req.payload ? User.findById(req.payload.id) : null).then(function(user){
     return req.post.populate({
       path: 'comments',
@@ -191,27 +195,33 @@ var commentlist=function(req, res, next){
 };
 
 var comment=function(req, res, next) {
-    User.findById(req.payload.id).then(function(user){
-      if(!user) return res.status(401).json({'message':'존재하지 않는 유저입니다.','status':'401'});
+  User.findById(req.payload.id).then(function(user){
+    if(!user) return res.status(401).json({'message':'존재하지 않는 유저입니다.','status':'401'});
 
-      var comment = new Comment(req.body.comment);
+    var comment = new Comment(req.body.comment);
+  
+    comment.post = req.post;
+    comment.author = user;
     
-      comment.post = req.post;
-      comment.author = user;
-
-      return comment.save().then(function(){
-        req.post.comments.push(comment);
-
-        return req.post.save().then(function(post) {
-            res.json({comment: comment.toJSONFor(user)});
+    return comment.save().then(function(){
+      req.post.comments.push(comment);
+      return req.post.save().then(function(post) {
+        res.json({comment: comment.toJSONFor(user)});
       });
     });
   }).catch(next);
 };
 
 var uncomment= async function(req, res, next) {
+  // const post = await Post.findById(req.post._id)
+
   if(req.comment.author.toString() === req.payload.id.toString()){
-      Comment.find({_id: req.comment._id}).remove().exec()
+      const comment=await Comment.find({_id: req.comment._id}).remove().exec()
+      // console.log(post.comments)
+      // post.comments.remove({comments:req.comment._id})
+      // post.updateOne({_id:req.post._id},{comments:req.post.comments},)
+      // console.log(post)
+      // comment.remove().exec()
       return res.status(200).json({'message':'댓글이 삭제되었습니다.','status':'200'});
   } else {
       res.status(403).json({'message':'댓글 작성자만 댓글을 삭제할 수 있습니다.','status':'403'});

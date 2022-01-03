@@ -21,7 +21,6 @@ PostSchema.methods.updateHeartCount = function() {
 }
 
 PostSchema.methods.toJSONFor = function(user){
-    console.log(this.author)
     return {
         id:this._id,
         content:this.content,
@@ -30,6 +29,7 @@ PostSchema.methods.toJSONFor = function(user){
         updatedAt: this.updatedAt,
         hearted: user.ishearts(this._id) ? user.ishearts(this._id) : false,
         heartCount:this.heartCount,
+        comments:this.comments,
         commentCount:this.comments.length,
         author: this.author.toProfileJSONFor(this.author)
     };
