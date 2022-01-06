@@ -1,36 +1,78 @@
-// var express=require('express'),
-//  fs = require('fs'),
-//  socketio = require("socket.io"),
-//  server=require('../app');
+var mongoose = require('mongoose');
+var User = mongoose.model('User');
+var ChatRoom = mongoose.model('ChatRoom');
+var Chat = mongoose.model('Chat');
+var Participant = mongoose.model('Participant');
+var express=require('express');
+const auth = require('./auth');
+var router=express.Router();
 
-// var io=socketio(server)
-// var router=express.Router();
+router.get('/chatting',async function(req,res){
+    res.render('chat');
+})
 
-// var chat=(req,res,next)=>{
-//     fs.readFile('HTMLPage.html',(error,data)=>{
-//         res.writeHead(200, {'Content-Type':'text/html'})
-//         res.end(data)
-//     })
-// }
-// function name(io) {
-    
-// }
-// io.socket.on('connection',(socket)=>{
-//     var roomName=null;
-//     socket.on('message',(data)=>{
-//         roomName=data;
-//         socket.join(data);
-//     })
+router.use(auth.required) 
 
-//     socket.on('message',(data)=>{
-//         io.socket.in(roomName).emit('message',data)
-//         console.log(data);
-//     })
+router.param('chatroom', async function(req, res, next, chatroomId) {
+    ChatRoom.findById(chatroomId).then(function(chatroom) {
+        req.chatroom = chatroom;
 
-//     socket.on('image',(data)=>{
-//         io.socket.in(roomName).emit('image',data)
-//         console.log(data);
-//     })
-// })
+        return next();
+      }).catch(()=>{return res.status(404).json({'message':"존재하지 않는 채팅방입니다.",'status':404})});
+  });
 
-// module.exports = router;
+router.param('user', async function(req, res, next, userId) {
+    const user = await User.findById(userId)
+    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
+    req.user = user
+    return next()
+})
+
+router.param('accountname',(req,res,next,accountname)=>{
+    User.findOne({accountname:accountname}).then((user)=>{
+        if (!user) return res.status(404).json({'message':"해당 계정이 존재하지 않습니다.",'status':'404'});
+        req.profile=user;
+        next();
+    }).catch(next);
+})
+
+router.post('/:accountname/chatroom',async function(req,res){
+    const user=await User.findById(req.payload.id)
+    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
+    var chatroom = new ChatRoom(req.body.chatroom)
+    var participant1=new Participant({
+        userId:req.payload.id,
+        roomId:chatroom._id,
+        roomname:chatroom.roomname,
+        notRead:0,
+        lastRead:0
+    })
+
+    var participant2=new Participant({
+        userId:req.profile.id,
+        roomId:chatroom._id,
+        roomname:chatroom.roomname,
+        notRead:0,
+        lastRead:0
+    })
+
+    await chatroom.save()
+    await participant1.save()
+    await participant2.save()
+    return res.status(200).json({chatroom:chatroom.toChatJSONFor()})
+})
+
+//채팅 목록
+router.get('/roomList', async function(req,res) {
+    const user = await User.findById(req.payload.id)
+    const rooms = await Participant.find({userId:user._id},)
+    return res.status(200).json({rooms:rooms.map(rooms=>rooms.toParticipantJSONFor())})
+})
+
+//채팅 내용 보낼때 사용
+router.get('/:chatroom', async function(req,res){
+    const chatting=await Chat.find({roomId:req.chatroom._id},)
+    return res.status(200).json(chatting)
+})
+
+module.exports = router;

@@ -8,16 +8,11 @@ var fs = require('fs'),
     errorhandler = require('errorhandler'),
     mongoose = require('mongoose'),
     morgan=require('morgan'),
-    multer = require('multer'),
-    socketio = require("socket.io"); 
-    // session = require('express-session'),
-    // MongoStore = require('connect-mongo')(session),
-    // config=require('./config');
+    multer = require('multer');
+var runSocketIo=require('./socket')
 
 var app=express();
-var server = http.createServer(app); //서버 생성 메소드(createServer)를 제공하며 파라미터로 express를 넘겨줌
-//server 변수에 담은 이유? ttp.createServer() 메소드는 서버를 생성하는 작업을 하고 난 후 생성한 서버 객체를 리턴해줍니다. 생성된 서버를 제어하기 위해 server 변수에 담는 것입니다.
-var io = socketio(server);
+var server = http.createServer(app); 
 
 app.set('view engine','ejs');
 app.set('views','./views');
@@ -41,58 +36,13 @@ require('./models/Comment');
 require('./models/Product');
 require('./models/Report');
 require('./models/ChatRoom');
+require('./models/Chat');
+require('./models/Participant');
 require('./config/passport');
 
 app.use(require('./routes'))
 
 app.use(express.static('uploadFiles'));
-
-//socketio
-// var User = mongoose.model('User');
-var ChatRoom = mongoose.model('ChatRoom');
-// const auth = require('./routes/auth');
-
-app.post('/chat',async function(req,res){
-    const user=await User.findById(req.payload.id)
-    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
-    const chatroom = new ChatRoom(req.body.chatroom)
-    await chatroom.save()
-    return res.status(200).json({chatroom:chatroom.toChatJSONFor()})
-})
-
-app.get('/chatlist', async function(req,res) {
-    const rooms = await ChatRoom.find({})
-    return res.send(rooms)
-})
-
-app.get('/chat',async function(req,res){
-    let room=await ChatRoom.find({})
-
-    res.render('chat');
-
-    io.on('connection',(socket)=>{
-        console.log('a user connected')
-    
-        socket.on('disconnect',()=>{
-            console.log('user disconnected');
-        })
-    
-        socket.on('leaveRoom',(id, name)=>{
-            socket.leave(id)
-            io.to(id).emit('leaveRoom',id, name)
-        })
-    
-        socket.on('joinRoom',(id, name)=>{
-            socket.join(id)
-            io.to(id).emit('joinRoom', id, name)
-        })
-    
-        socket.on('chat message',(num, name, msg)=>{
-            io.to(room[num]).emit('chat message',name, msg);
-        })
-    })
-
-})
 
 // error
 app.use((req,res,next)=>{
@@ -151,6 +101,8 @@ app.use((err,req,res,next)=>{
     res.json(err)
     return next(err);
 })
+
+runSocketIo(server)
 
 server.listen(5050,()=>{
     var dir='./uploadFiles';

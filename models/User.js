@@ -7,7 +7,7 @@ var secret=require('../config').secret;
 var UserSchema = new mongoose.Schema({
     username:{type:String,required:[true, "필수 입력 사항입니다."]},
     image:{type:String},
-    email:{type:String, lowercase:true, unique:true, required:[true, "필수 입력 사항입니다."], match: [/\S+@\S+\.\S+/, '잘못된 이메일 형식입니다.'],index:true},
+    email:{type:String, lowercase:true, unique:true, required:[true, "필수 입력 사항입니다."], match: [/([-_0-9a-zA-Z])+@([a-zA-Z])+.[a-zA-Z]{2,3}/, '잘못된 이메일 형식입니다.'],index:true},
     accountname:{type:String, unique:true, required:[true, "필수 입력 사항입니다."],match:/^[_.a-zA-Z0-9|s]*$/,index:true},
     intro:{type:String},
     hearts:[{type:mongoose.Schema.Types.ObjectId,ref:'Post'}],

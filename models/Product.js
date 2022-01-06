@@ -1,7 +1,7 @@
 var mongoose=require('mongoose');
 
 var autoIncrement = require('mongoose-sequence');
-// var User = mongoose.model('User')
+var User = mongoose.model('User')
 
 var ProductSchema = new mongoose.Schema({
     itemName:{type:String,required:[true, "필수 입력 사항입니다."]},

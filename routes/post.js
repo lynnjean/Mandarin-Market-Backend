@@ -12,6 +12,7 @@ router.use(auth.required)
 
 router.param('post', async function(req, res, next, postId) {
   Post.findById(postId).populate('author').then(function(post) {
+      if(!post) return res.status(404).json({'message':"존재하지 않는 게시글입니다.",'status':404})
       req.post = post;
       return next();
     }).catch(()=>{return res.status(404).json({'message':"존재하지 않는 게시글입니다.",'status':404})});
@@ -21,7 +22,7 @@ router.param('user', async function(req, res, next, userId) {
   const user = await User.findById(userId)
   if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
   req.user = user
-return next()
+  return next()
 })
 
 const createPost = async function createPost(req, res, next) {
@@ -97,7 +98,8 @@ const getFeed = async function getPostByFollowing(req,res){
   return res.status(200).json({posts: posts.map(post=>post.toJSONFor(user))})
 }
 
-const removePost = async function removePost(req, res){  
+const removePost = async function removePost(req, res){ 
+  console.log(req.post)
   if(req.payload.id.toString() === req.post.author._id.toString()){
     const user=await User.find({hearts:req.post._id})
     user.map(async user=>{
