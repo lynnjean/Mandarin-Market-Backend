@@ -59,6 +59,7 @@ var follows= async (req,res,next)=>{
     var profileId=req.profile.id;
     const user =  await User.findById(req.payload.id);
     if (!user) return res.status(401);
+    if (user._id.toString()===profileId.toString()) return res.status(200).json({message:'자기 자신을 팔로우 할 수 없습니다.'})
     user.follow(profileId);
     req.profile.addFollower(req.payload.id);
     await User.findByIdAndUpdate(req.payload.id, user)
