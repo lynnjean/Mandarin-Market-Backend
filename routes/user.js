@@ -56,7 +56,7 @@ var emailVarlid=async function(req,res,next){
     const allemail=await User.find({email:req.body.user.email},{email:1})
     const email=allemail.map(allemail=>allemail.email);
     if(email.length==0) return res.json({'message':'사용 가능한 이메일 입니다.'})
-    if(email.length==1) return res.json({'message':'이미 사용중인 이메일 입니다.'})
+    if(email.length==1) return res.json({'message':'이미 가입된 이메일 주소 입니다.'})
 }
 
 var update=(req,res,next)=>{
