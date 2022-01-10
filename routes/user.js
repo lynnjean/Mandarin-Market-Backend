@@ -9,6 +9,7 @@ var Jwt=require('jsonwebtoken');
 var secret=require('../config').secret;
 var jwt=require('jsonwebtoken');
 var jwt=require('express-jwt');
+const { read } = require('fs');
 
 var router=express.Router();
  
@@ -29,7 +30,7 @@ var login=(req,res,next)=>{
         else return res.json(info);
     })(req,res,next);
 };
-  
+
 var create=function(req,res,next){
     var user=new User();
     const regex=new RegExp(/\S+@\S+\.\S+/);
@@ -49,6 +50,13 @@ var create=function(req,res,next){
         return res.status(200).json({'message':'회원가입 성공',user:user.toJoinJson(user)})
     }).catch(next)
 };
+
+var emailVarlid=async function(req,res,next){
+    const allemail=await User.find({email:req.body.user.email},{email:1})
+    const email=allemail.map(allemail=>allemail.email);
+    if(email.length==0) return res.json({'message':'사용 가능한 이메일 입니다.'})
+    return res.json({'message':'이미 사용중인 이메일 입니다.'})
+}
 
 var update=(req,res,next)=>{
     User.findById(req.payload.id).then(function(user){
@@ -123,6 +131,7 @@ var userdelete=(req,res)=>{
 }    
 
 router.post('/',create);
+router.post('/emailvalid',emailVarlid)
 router.post('/login',login);
 router.get('/', list);
 
