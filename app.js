@@ -112,7 +112,7 @@ app.use((err,req,res,next)=>{
     return next(err);
 })
 
-server.listen(5050,()=>{
+server.listen(3030,()=>{
     var dir='./uploadFiles';
     if(!fs.existsSync(dir)) fs.mkdirSync(dir);
     console.log('start server')

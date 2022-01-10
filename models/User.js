@@ -51,7 +51,7 @@ UserSchema.methods.toJoinJson= function(user){
         email:this.email,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image || 'http://146.56.183.55:5050/Ellipse.png'
+        image:this.image || 'http://146.56.183.55:3030/Ellipse.png'
     }
 }
 
@@ -62,7 +62,7 @@ UserSchema.methods.toAuthJson= function(user){
         email:this.email,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image || 'http://146.56.183.55:5050/Ellipse.png',
+        image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
         token:this.generateJWT(),
         refreshToken:this.refreshJWT()
     }
@@ -97,7 +97,7 @@ UserSchema.methods.toProfileJSONFor= function(user){
         username:this.username,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image || 'http://146.56.183.55:5050/Ellipse.png',
+        image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
         following:this.following,
         follower:this.follower,
         followerCount:this.follower.length,
