@@ -1,18 +1,22 @@
 var mongoose=require('mongoose');
-
-var autoIncrement = require('mongoose-sequence');
+const  AutoIncrement  =  require ( 'mongoose-sequence' ) ( mongoose ) ;
 
 var ChatSchema = new mongoose.Schema({
+    _id:Number,
     roomId: { type: mongoose.Schema.Types.ObjectId, ref: 'ChatRoom' },
     senduserId:{ type: mongoose.Schema.Types.ObjectId, ref: 'Participant' },
+    participant:String,
     message:String,
     notRead:String
-},{timestamps:true})
+},{_id:false,timestamps:true})
+
+ChatSchema.plugin(AutoIncrement);
 
 ChatSchema.methods.toChatJSONFor= function(){
     return {
         _id: this._id, //채팅 개별 id
         roomId:this.roomId,
+        participant:this.participant,
         senduserId: this.senduserId,
         message:this.message,
         notRead:this.notRead,

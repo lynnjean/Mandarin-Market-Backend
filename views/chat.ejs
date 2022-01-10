@@ -15,23 +15,21 @@
     <script>
       let roomlist
       const getRooms = async () =>{
-        roomlist = await (await fetch('http://localhost:5050/chat/roomList',{headers:{Authorization:"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxZDUzNzA4NThmYWRhMmU0NDM0ZjBlMiIsImV4cCI6MTY0NjU1MDk5NiwiaWF0IjoxNjQxMzY2OTk2fQ.RMNwrqa78U7pt_BGzkdNUZX1Cwqu6rs6z-rH03J25Gw"}})).json()
+        roomlist = await (await fetch('http://localhost:5050/chat/roomList',{
+          method:"GET",
+          headers:{
+            "Content-Type":"application/json",
+            "Authorization" : "Bearer "+localStorage.getItem("access-token")
+          }
+        })).json()
       }
-
-      // let user
-      // const getUser = async () =>{
-      //   const user= await(await fetch('http://localhost:5050/chatuser')).json()
-      // }
 
       const init = async () => {
         await getRooms()
-        // await getUser()
-        const name = prompt('What your name');
-        var socket = io.connect('http://localhost:5050/chat/chatting',  {extraHeaders: {Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxZDUzNzA4NThmYWRhMmU0NDM0ZjBlMiIsImV4cCI6MTY0NjU1MDk5NiwiaWF0IjoxNjQxMzY2OTk2fQ.RMNwrqa78U7pt_BGzkdNUZX1Cwqu6rs6z-rH03J25Gw"}});
+        // const name = prompt('What your name');//room[a].userId
+        var socket = io();
         let room = roomlist.rooms;
 
-        // let name = user;
-        // console.log(name)
         let num = 0;
 
         const select=document.querySelector("select");
@@ -44,37 +42,40 @@
         }
 
         let a=0
- 
-        socket.emit('joinRoom', room[a].roomId, name);
+        
+        socket.emit('joinRoom', room[a].roomId, room[a].participant);
+        socket.emit('readChat',room[a].roomId, room[a].userId) 
 
         $('select').change((e) => {
           a = e.target.selectedIndex
-          socket.emit('leaveRoom', room[a].roomId, name);
-          // console.log(room[a].roomId)
-          socket.emit('joinRoom', room[a].roomId, name);
+          socket.emit('joinRoom', room[a].roomId, room[a].participant);
+          socket.emit('readChat',room[a].roomId, room[a].userId)
         });
-    
-        //----------------
+
         $('form').submit(() => {
-          socket.emit('message', a, name, $('#m').val());
+          socket.emit('message', room[a].roomId, room[a].userId, $('#m').val());
           $('#m').val('');
           return false;
-        });
-    
-        socket.on('message', (name, msg) => {
-          $('#messages').append($('<li>').text(name + '  :  ' + msg));
-        });
-    
-        socket.on('leaveRoom', (a, name) => {
-          $('#messages').append($('<li>').text(name + '    leaved ' + room[a] + ' :('));
         });
     
         socket.on('joinRoom', (roomid, name) => {
           $('#messages').append($('<li>').text(name + '    joined ' + roomid + ':)'));
         });
+
+        socket.on('message', (name, message) => {
+          $('#messages').append($('<li>').text(name + '  :  ' + message));
+        });
+    
+        //채팅방 나가기를 버튼을 클릭했을때
+        socket.emit('leaveRoom', room[a].roomId, room[a].participant);
+
+        socket.on('leaveRoom', (roomid, name) => {
+          $('#messages').append($('<li>').text(name + '    leaved ' + roomid + ' :('));
+        });
       }
 
       init()
     </script>
+
   </body>
 </html>

@@ -9,10 +9,13 @@ var fs = require('fs'),
     mongoose = require('mongoose'),
     morgan=require('morgan'),
     multer = require('multer');
+const AutoIncrementFactory = require('mongoose-sequence');
+
 var runSocketIo=require('./socket')
 
 var app=express();
-var server = http.createServer(app); 
+var server = http.createServer(app); //서버 생성 메소드(createServer)를 제공하며 파라미터로 express를 넘겨줌
+//server 변수에 담은 이유? ttp.createServer() 메소드는 서버를 생성하는 작업을 하고 난 후 생성한 서버 객체를 리턴해줍니다. 생성된 서버를 제어하기 위해 server 변수에 담는 것입니다.
 
 app.set('view engine','ejs');
 app.set('views','./views');
@@ -29,6 +32,7 @@ db.on('error', console.error.bind(console, 'connection error: '));
 db.once('open', function callback() {
     console.log('db connection');
 });
+const AutoIncrement = AutoIncrementFactory(db);
 
 require('./models/User');
 require('./models/Post');
@@ -43,6 +47,12 @@ require('./config/passport');
 app.use(require('./routes'))
 
 app.use(express.static('uploadFiles'));
+
+runSocketIo(server, mongoose)
+
+app.get('/chatting', function(req,res) {
+    res.render('chat')
+})
 
 // error
 app.use((req,res,next)=>{
@@ -101,8 +111,6 @@ app.use((err,req,res,next)=>{
     res.json(err)
     return next(err);
 })
-
-runSocketIo(server)
 
 server.listen(5050,()=>{
     var dir='./uploadFiles';
