@@ -11,6 +11,7 @@ router.use(auth.required)
 
 router.param('chatroom', async function(req, res, next, chatroomId) {
     ChatRoom.findById(chatroomId).then(function(chatroom) {
+        if(!chatroom) return res.status(404).json({'message':"채팅방이 존재하지 않습니다.",'status':'404'});
         req.chatroom = chatroom;
         return next();
       }).catch(()=>{return res.status(404).json({'message':"존재하지 않는 채팅방입니다.",'status':404})});
