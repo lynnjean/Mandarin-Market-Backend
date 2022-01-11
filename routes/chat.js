@@ -26,37 +26,36 @@ router.param('accountname',(req,res,next,accountname)=>{
 
 router.post('/:accountname/chatroom',async function(req,res){
     if(req.profile.id===req.payload.id) return res.json({'message':"자신과의 채팅은 할 수 없습니다."})
-    const allchatroom=await ChatRoom.find({participant:req.profile.id})
-    if (allchatroom.length===1) return res.json({'message':"이미 만들어진 채팅방 입니다."})
+    const allchatroom=await ChatRoom.find({participant:req.profile.accountname})
+    if (allchatroom.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다."})
 
     var chatroom = new ChatRoom(req.body.chatroom)
     const me=await User.findById(req.payload.id)
     const participants=await User.findById(req.profile.id)
     chatroom.participant=participants.accountname
+    chatroom.image=participants.image; 
 
     await chatroom.save()
 
     var participant1=new Participant({
         userId:req.payload.id,
         roomId:chatroom._id,
+        participant:me.accountname,
+        image:me.image,
         roomname:chatroom.roomname,
         notRead:0,
         lastRead:0
     })
-    participant1.participant=me.accountname;
-
 
     var participant2=new Participant({
         userId:req.profile.id,
         roomId:chatroom._id,
         participant:participants.accountname,
+        image:participants.image,
         roomname:chatroom.roomname,
         notRead:0,
         lastRead:0
     })
-    participant2.participant=participants.accountname;
-
-
 
     await participant1.save()
     await participant2.save()
@@ -64,15 +63,15 @@ router.post('/:accountname/chatroom',async function(req,res){
 })
 
 router.get('/roomList', async function(req,res) {
-    console.log(req.payload.id)
     const rooms = await Participant.find({userId:req.payload.id},)
     return res.status(200).json({rooms:rooms.map(rooms=>rooms.toParticipantJSONFor())})
 })
 
 //채팅 내용 보낼때 사용??
 router.get('/:chatroom', async function(req,res){
+    const participant=req.chatroom.participant
     const chatting=await Chat.find({roomId:req.chatroom._id})
-    return res.status(200).json(chatting)
+    return res.status(200).json({participant:participant,chatting})
 })
 
 module.exports = router;
