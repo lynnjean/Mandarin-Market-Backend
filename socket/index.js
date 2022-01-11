@@ -35,14 +35,14 @@ const joinRoom= function(socket,io){
 const message=function(socket, io, User, Chat, ChatRoom,Participant){
     socket.on('message',async(roomId, senduserId, message)=>{   
         const senduser=await User.findById(senduserId)
-
         const chat= new Chat({
             roomId:roomId,
             senduserId:senduserId,
-            image:senduser.image,
+            image:senduser.image|| 'http://146.56.183.55:3030/Ellipse.png',
             participant:senduser.accountname,
             message:message
         })
+        console.log(chat)
         await chat.save()
 
         await ChatRoom.update({_id:chat.roomId},{lastchat:chat.message, lastReadId:chat._id})
