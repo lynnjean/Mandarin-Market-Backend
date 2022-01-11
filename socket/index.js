@@ -5,9 +5,9 @@ const runSocketIo=function(server, mongoose){
     var io = require("socket.io")(server, {
         cors: {
           origin: "http://146.56.183.55:3030/",
-          methods: ["GET", "POST"]
-        //   allowedHeaders: ["my-custom-header"],
-        //   credentials: true
+          methods: ["GET", "POST"],
+          allowedHeaders: ["my-custom-header"],
+          credentials: true
         }
       });
     var io = socketio(server);
