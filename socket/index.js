@@ -36,6 +36,7 @@ const disconnect =function(socket){
 
 const joinRoom= function(socket,io){
     socket.on('joinRoom', (roomId, name) => {
+        if(!roomId||!name) return console.log('채팅방 이름과 유저 이름을 불러오세요.')
         socket.join(roomId)
         io.to(roomId).emit('joinRoom', roomId, name);
     });
@@ -43,6 +44,8 @@ const joinRoom= function(socket,io){
 
 const message=function(socket, io, User, Chat, ChatRoom,Participant){
     socket.on('message',async(roomId, senduserId, message)=>{   
+        if(!roomId||!senduserId||!message) return console.log('채팅방 이름, 유저 이름, 메시지를 불러오세요.')
+
         const senduser=await User.findById(senduserId)
         const chat= new Chat({
             roomId:roomId,
@@ -51,7 +54,7 @@ const message=function(socket, io, User, Chat, ChatRoom,Participant){
             participant:senduser.accountname,
             message:message
         })
-        console.log(chat)
+
         await chat.save()
 
         await ChatRoom.update({_id:chat.roomId},{lastchat:chat.message, lastReadId:chat._id})
@@ -67,6 +70,8 @@ const message=function(socket, io, User, Chat, ChatRoom,Participant){
 
 const readChat=function(socket,io,Chat,Participant,ChatRoom){
     socket.on('readChat',async(roomId,userId)=>{
+        if(!roomId||!userId) return console.log('채팅방 이름, 유저 이름을 불러오세요.')
+
         const chatroom= await ChatRoom.find({_id:roomId})
         await Participant.update({roomId:roomId,userId:userId},{notRead:0})
 
