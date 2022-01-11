@@ -2,6 +2,14 @@ var http = require('http'),
 socketio = require("socket.io");
 
 const runSocketIo=function(server, mongoose){
+    var io = require("socket.io")(server, {
+        cors: {
+          origin: "http://146.56.183.55:3030/",
+          methods: ["GET", "POST"]
+        //   allowedHeaders: ["my-custom-header"],
+        //   credentials: true
+        }
+      });
     var io = socketio(server);
     var User = mongoose.model('User')
     var Chat = mongoose.model('Chat')
@@ -9,6 +17,7 @@ const runSocketIo=function(server, mongoose){
     var Participant = mongoose.model('Participant');
 
     io.on('connection', (socket) => {
+
         console.log('a user connected')
 
         disconnect(socket)
