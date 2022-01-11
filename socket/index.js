@@ -2,7 +2,7 @@ var http = require('http'),
 socketio = require("socket.io");
 
 const runSocketIo=function(server, mongoose){
-    var io = require("socket.io")(server, {
+    var io = socketio(server, {
         cors: {
           origin: "http://146.56.183.55:3030/",
           methods: ["GET", "POST"],
@@ -10,7 +10,7 @@ const runSocketIo=function(server, mongoose){
           credentials: true
         }
       });
-    var io = socketio(server);
+    // var io = socketio(server);
     var User = mongoose.model('User')
     var Chat = mongoose.model('Chat')
     var ChatRoom = mongoose.model('ChatRoom');
