@@ -6,6 +6,7 @@ var ChatSchema = new mongoose.Schema({
     roomId: { type: mongoose.Schema.Types.ObjectId, ref: 'ChatRoom' },
     senduserId:{ type: mongoose.Schema.Types.ObjectId, ref: 'Participant' },
     participant:String,
+    image:String,
     message:String,
     notRead:String
 },{_id:false,timestamps:true})
@@ -17,6 +18,7 @@ ChatSchema.methods.toChatJSONFor= function(){
         _id: this._id, //채팅 개별 id
         roomId:this.roomId,
         participant:this.participant,
+        image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
         senduserId: this.senduserId,
         message:this.message,
         notRead:this.notRead,

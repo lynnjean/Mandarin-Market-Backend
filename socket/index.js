@@ -39,6 +39,7 @@ const message=function(socket, io, User, Chat, ChatRoom,Participant){
         const chat= new Chat({
             roomId:roomId,
             senduserId:senduserId,
+            image:senduser.image,
             participant:senduser.accountname,
             message:message
         })
