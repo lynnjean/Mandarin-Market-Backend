@@ -24,7 +24,7 @@ const runSocketIo=function(server, mongoose){
         joinRoom(socket,io)
         leaveRoom(socket,io)
         message(socket,io,User,Chat,ChatRoom,Participant)
-        readChat(socket,io,Chat,Participant,ChatRoom)
+        readChat(socket,io,Participant,ChatRoom)
     });
 }
 
@@ -36,7 +36,7 @@ const disconnect =function(socket){
 
 const joinRoom= function(socket,io){
     socket.on('joinRoom', (roomId, name) => {
-        if(!roomId||!name) return console.log('채팅방 이름과 유저 이름을 불러오세요.')
+        if(!roomId||!name) return console.log('채팅방 이름 또는 유저 이름을 불러오세요.')
         socket.join(roomId)
         io.to(roomId).emit('joinRoom', roomId, name);
     });
@@ -68,7 +68,7 @@ const message=function(socket, io, User, Chat, ChatRoom,Participant){
     })
 }
 
-const readChat=function(socket,io,Chat,Participant,ChatRoom){
+const readChat=function(socket,io,Participant,ChatRoom){
     socket.on('readChat',async(roomId,userId)=>{
         if(!roomId||!userId) return console.log('채팅방 이름, 유저 이름을 불러오세요.')
 

@@ -71,8 +71,10 @@ router.get('/roomList', async function(req,res) {
 //채팅 내용 보낼때 사용??
 router.get('/:chatroom', async function(req,res){
     const participant=req.chatroom.participant
+    const me=req.payload.id
+
     const chatting=await Chat.find({roomId:req.chatroom._id})
-    return res.status(200).json({participant:participant,chatting})
+    return res.status(200).json({me:me,participant:participant,chatting})
 })
 
 module.exports = router;
