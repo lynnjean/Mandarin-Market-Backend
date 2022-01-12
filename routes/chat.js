@@ -27,18 +27,13 @@ router.param('accountname',(req,res,next,accountname)=>{
 
 router.post('/:accountname/chatroom',async function(req,res){
     if(req.profile.id===req.payload.id) return res.json({'message':"자신과의 채팅은 할 수 없습니다."})
-
-    const me=await User.findById(req.payload.id)
-    const participants=await User.findById(req.profile.id)
-
-    const allchatroom=await ChatRoom.find({participant:participants.accountname,me:me.accountname})
+    const allchatroom=await ChatRoom.find({participant:req.profile.accountname})
     if (allchatroom.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다."})
 
     var chatroom = new ChatRoom(req.body.chatroom)
-
+    const me=await User.findById(req.payload.id)
+    const participants=await User.findById(req.profile.id)
     chatroom.participant=participants.accountname
-    chatroom.myId=req.payload.id
-    chatroom.me=me.accountname
     chatroom.image=participants.image; 
 
     await chatroom.save()
@@ -46,7 +41,7 @@ router.post('/:accountname/chatroom',async function(req,res){
     var participant1=new Participant({
         userId:req.payload.id,
         roomId:chatroom._id,
-        participants:me.accountname,
+        participant:me.accountname,
         image:me.image,
         roomname:chatroom.roomname,
         notRead:0,
@@ -56,7 +51,7 @@ router.post('/:accountname/chatroom',async function(req,res){
     var participant2=new Participant({
         userId:req.profile.id,
         roomId:chatroom._id,
-        participants:participants.accountname,
+        participant:participants.accountname,
         image:participants.image,
         roomname:chatroom.roomname,
         notRead:0,
@@ -65,18 +60,15 @@ router.post('/:accountname/chatroom',async function(req,res){
 
     await participant1.save()
     await participant2.save()
-    return res.status(200).json({chatroom:chatroom.toChatRoomJSONFor()})
+    return res.status(200).json({chatroom:chatroom.toChatJSONFor()})
 })
 
 router.get('/roomList', async function(req,res) {
-    const me=await User.findById(req.payload.id)
-    console.log(me)
-    const rooms = await ChatRoom.find({me:me.accountname})
-    console.log(rooms)
-
-    return res.status(200).json({rooms:rooms.map(rooms=>rooms.toChatRoomJSONFor())})
+    const rooms = await Participant.find({userId:req.payload.id},)
+    return res.status(200).json({rooms:rooms.map(rooms=>rooms.toParticipantJSONFor())})
 })
 
+//채팅 내용 보낼때 사용??
 router.get('/:chatroom', async function(req,res){
     const participant=req.chatroom.participant
     const me=req.payload.id

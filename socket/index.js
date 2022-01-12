@@ -59,7 +59,7 @@ const message=function(socket, io, User, Chat, ChatRoom,Participant){
 
         await ChatRoom.update({_id:chat.roomId},{lastchat:chat.message, lastReadId:chat._id})
 
-        io.to(roomId).emit('message', chat)
+        io.to(roomId).emit('message', senduserId, message)
 
         const participant=await Participant.find({roomId:chat.roomId,userId:{$ne:senduserId}},)
 
@@ -74,7 +74,7 @@ const readChat=function(socket,io,Participant,ChatRoom){
 
         const chatroom= await ChatRoom.find({_id:roomId})
         await Participant.update({roomId:roomId,userId:userId},{notRead:0})
-                
+
         io.to(roomId).emit('readChat',roomId, chatroom.lastReadId)
     })
 }
@@ -87,4 +87,3 @@ const leaveRoom=function(socket,io){
 }
 
 module.exports = runSocketIo;
-

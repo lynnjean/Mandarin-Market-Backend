@@ -36,26 +36,26 @@
 
         for (num = 0; num < room.length; num++) {
           const option=document.createElement("option");
-          option.value=room[num]['_id'];
-          option.innerText=room[num]['_id']
+          option.value=room[num]['roomId'];
+          option.innerText=room[num]['roomId']
           select.appendChild(option)
         }
 
         let a=0
         
-        console.log(room[a])
+        console.log(room[a].paticipant)
 
-        socket.emit('joinRoom', room[a]._id, room[a].me);
-        socket.emit('readChat',room[a]._id, room[a].myId) 
+        socket.emit('joinRoom', room[a].roomId, room[a].participant);
+        socket.emit('readChat',room[a].roomId, room[a].userId) 
 
         $('select').change((e) => {
           a = e.target.selectedIndex
-          socket.emit('joinRoom', room[a]._id, room[a].me);
-          socket.emit('readChat',room[a]._id, room[a].myId)
+          socket.emit('joinRoom', room[a].roomId, room[a].participant);
+          socket.emit('readChat',room[a].roomId, room[a].userId)
         });
 
         $('form').submit(() => {
-          socket.emit('message', room[a]._id, room[a].myId, $('#m').val());
+          socket.emit('message', room[a].roomId, room[a].userId, $('#m').val());
           $('#m').val('');
           return false;
         });
@@ -64,13 +64,12 @@
           $('#messages').append($('<li>').text(name + '    joined ' + roomid + ':)'));
         });
 
-        socket.on('message', (chat) => {
-          //participant는 보내는 사람의 accountname 입니다.
-          $('#messages').append($('<li>').text(chat.participant + '  :  ' + chat.message));
+        socket.on('message', (name, message) => {
+          $('#messages').append($('<li>').text(name + '  :  ' + message));
         });
     
         //채팅방 나가기를 버튼을 클릭했을때
-        socket.emit('leaveRoom', room[a]._id, room[a].me);
+        socket.emit('leaveRoom', room[a].roomId, room[a].participant);
 
         socket.on('leaveRoom', (roomid, name) => {
           $('#messages').append($('<li>').text(name + '    leaved ' + roomid + ' :('));
