@@ -46,7 +46,7 @@ router.post('/:accountname/chatroom',async function(req,res){
         target_username:participants.username,
         roomId:chatroom._id,
         participant:me.accountname,
-        image:me.image,
+        image:participants.image,
         roomname:chatroom.roomname,
         notRead:0,
         lastRead:0
@@ -57,7 +57,7 @@ router.post('/:accountname/chatroom',async function(req,res){
         roomId:chatroom._id,
         target_username:me.username,
         participant:participants.accountname,
-        image:participants.image,
+        image:me.image,
         roomname:chatroom.roomname,
         notRead:0,
         lastRead:0

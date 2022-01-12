@@ -50,7 +50,7 @@ const message=function(socket, io, User, Chat, ChatRoom,Participant){
         const chat= new Chat({
             roomId:roomId,
             senduserId:senduserId,
-            image:senduser.image|| 'http://146.56.183.55:3030/Ellipse.png',
+            image:senduser.image,
             participant:senduser.accountname,
             message:message
         })
