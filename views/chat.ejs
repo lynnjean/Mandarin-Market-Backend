@@ -64,8 +64,9 @@
           $('#messages').append($('<li>').text(name + '    joined ' + roomid + ':)'));
         });
 
-        socket.on('message', (name, message) => {
-          $('#messages').append($('<li>').text(name + '  :  ' + message));
+        socket.on('message', (chat) => {
+          //participant는 보내는 사람의 accountname 입니다.
+          $('#messages').append($('<li>').text(chat.participant + '  :  ' + chat.message));
         });
     
         //채팅방 나가기를 버튼을 클릭했을때
