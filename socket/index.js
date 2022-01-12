@@ -59,7 +59,7 @@ const message=function(socket, io, User, Chat, ChatRoom,Participant){
 
         await ChatRoom.update({_id:chat.roomId},{lastchat:chat.message, lastReadId:chat._id})
 
-        io.to(roomId).emit('message', senduserId, message)
+        io.to(roomId).emit('message', chat)
 
         const participant=await Participant.find({roomId:chat.roomId,userId:{$ne:senduserId}},)
 
