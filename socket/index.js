@@ -82,7 +82,7 @@ const readChat=function(socket,io,Participant,ChatRoom){
 const leaveRoom=function(socket,io){
     socket.on('leaveRoom',(roomId, name)=>{
         socket.leave(roomId)
-        io.to(roomId).emit('leaveRoom',roomId, name)
+        // io.to(roomId).emit('leaveRoom',roomId, name)
     })
 }
 

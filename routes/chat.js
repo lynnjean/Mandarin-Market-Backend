@@ -43,6 +43,7 @@ router.post('/:accountname/chatroom',async function(req,res){
 
     var participant1=new Participant({
         userId:req.payload.id,
+        target_username:participants.username,
         roomId:chatroom._id,
         participant:me.accountname,
         image:me.image,
@@ -54,6 +55,7 @@ router.post('/:accountname/chatroom',async function(req,res){
     var participant2=new Participant({
         userId:req.profile.id,
         roomId:chatroom._id,
+        target_username:me.username,
         participant:participants.accountname,
         image:participants.image,
         roomname:chatroom.roomname,
