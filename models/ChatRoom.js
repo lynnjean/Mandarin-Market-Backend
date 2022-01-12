@@ -11,15 +11,15 @@ var ChatRoomSchema = new mongoose.Schema({
     image:String
 },{timestamps:true})
 
-ChatRoomSchema.methods.toChatRoomJSONFor= function(){
+ChatRoomSchema.methods.toChatJSONFor= function(){
     return {
         _id: this._id,
         lastchat:this.lastchat,
         lastReadId:this.lastReadId,
-        me:this.me,
         myId:this.myId,
-        participant:this.participant,
+        me:this.me,
         image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
+        participant:this.participant,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt
     }

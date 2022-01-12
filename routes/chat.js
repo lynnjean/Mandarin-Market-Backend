@@ -30,10 +30,13 @@ router.post('/:accountname/chatroom',async function(req,res){
     const allchatroom=await ChatRoom.find({participant:req.profile.accountname})
     if (allchatroom.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다."})
 
-    var chatroom = new ChatRoom(req.body.chatroom)
     const me=await User.findById(req.payload.id)
     const participants=await User.findById(req.profile.id)
+
+    var chatroom = new ChatRoom(req.body.chatroom)
     chatroom.participant=participants.accountname
+    chatroom.me=me.accountname
+    chatroom.myId=me._id
     chatroom.image=participants.image; 
 
     await chatroom.save()
