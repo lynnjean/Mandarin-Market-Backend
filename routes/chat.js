@@ -34,6 +34,8 @@ router.post('/:accountname/chatroom',async function(req,res){
     const me=await User.findById(req.payload.id)
     const participants=await User.findById(req.profile.id)
     chatroom.participant=participants.accountname
+    chatroom.myId=req.payload.id
+    chatroom.me=me.accountname
     chatroom.image=participants.image; 
 
     await chatroom.save()
@@ -41,7 +43,7 @@ router.post('/:accountname/chatroom',async function(req,res){
     var participant1=new Participant({
         userId:req.payload.id,
         roomId:chatroom._id,
-        participant:me.accountname,
+        participants:me.accountname,
         image:me.image,
         roomname:chatroom.roomname,
         notRead:0,
@@ -51,7 +53,7 @@ router.post('/:accountname/chatroom',async function(req,res){
     var participant2=new Participant({
         userId:req.profile.id,
         roomId:chatroom._id,
-        participant:participants.accountname,
+        participants:participants.accountname,
         image:participants.image,
         roomname:chatroom.roomname,
         notRead:0,
@@ -60,15 +62,15 @@ router.post('/:accountname/chatroom',async function(req,res){
 
     await participant1.save()
     await participant2.save()
-    return res.status(200).json({chatroom:chatroom.toChatJSONFor()})
+    return res.status(200).json({chatroom:chatroom.toChatRoomJSONFor()})
 })
 
 router.get('/roomList', async function(req,res) {
-    const rooms = await Participant.find({userId:req.payload.id},)
-    return res.status(200).json({rooms:rooms.map(rooms=>rooms.toParticipantJSONFor())})
+    const me=await User.findById(req.payload.id)
+    const rooms = await ChatRoom.find({me:me.accountname})
+    return res.status(200).json({rooms:rooms.map(rooms=>rooms.toChatRoomJSONFor())})
 })
 
-//채팅 내용 보낼때 사용??
 router.get('/:chatroom', async function(req,res){
     const participant=req.chatroom.participant
     const me=req.payload.id

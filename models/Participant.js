@@ -5,7 +5,7 @@ var autoIncrement = require('mongoose-sequence');
 var ParticipantSchema = new mongoose.Schema({
     userId:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     roomId: { type: mongoose.Schema.Types.ObjectId, ref: 'ChatRoom' },
-    participant: String,
+    participants: String,
     image:String,
     roomname: String,
     notRead:Number,
@@ -15,7 +15,7 @@ var ParticipantSchema = new mongoose.Schema({
 ParticipantSchema.methods.toParticipantJSONFor= function(){
     return {
         userId:this.userId,
-        participant:this.participant,
+        participants:this.participants,
         image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
         roomId: this.roomId,
         roomname:this.roomname,

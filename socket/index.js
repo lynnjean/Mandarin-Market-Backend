@@ -4,7 +4,7 @@ socketio = require("socket.io");
 const runSocketIo=function(server, mongoose){
     var io = socketio(server, {
         cors: {
-          origin: "http://146.56.183.55:3030/",
+          origin: "http://localhost:3030/",
           methods: ["GET", "POST"],
           allowedHeaders: ["my-custom-header"],
           credentials: true
@@ -50,7 +50,7 @@ const message=function(socket, io, User, Chat, ChatRoom,Participant){
         const chat= new Chat({
             roomId:roomId,
             senduserId:senduserId,
-            image:senduser.image|| 'http://146.56.183.55:3030/Ellipse.png',
+            image:senduser.image|| 'http://localhost:3030/Ellipse.png',
             participant:senduser.accountname,
             message:message
         })
@@ -74,7 +74,7 @@ const readChat=function(socket,io,Participant,ChatRoom){
 
         const chatroom= await ChatRoom.find({_id:roomId})
         await Participant.update({roomId:roomId,userId:userId},{notRead:0})
-
+                
         io.to(roomId).emit('readChat',roomId, chatroom.lastReadId)
     })
 }

@@ -15,7 +15,7 @@
     <script>
       let roomlist
       const getRooms = async () =>{
-        roomlist = await (await fetch('http://146.56.183.55:3030/chat/roomList',{
+        roomlist = await (await fetch('http://localhost:3030/chat/roomList',{
           method:"GET",
           headers:{
             "Content-Type":"application/json",
@@ -27,7 +27,7 @@
       const init = async () => {
         await getRooms()
         // const name = prompt('What your name');//room[a].userId
-        var socket = io('http://146.56.183.55:3030');
+        var socket = io('http://localhost:3030');
         let room = roomlist.rooms;
 
         let num = 0;
@@ -36,26 +36,26 @@
 
         for (num = 0; num < room.length; num++) {
           const option=document.createElement("option");
-          option.value=room[num]['roomId'];
-          option.innerText=room[num]['roomId']
+          option.value=room[num]['_id'];
+          option.innerText=room[num]['_id']
           select.appendChild(option)
         }
 
         let a=0
         
-        console.log(room[a].paticipant)
+        console.log(room[a])
 
-        socket.emit('joinRoom', room[a].roomId, room[a].participant);
-        socket.emit('readChat',room[a].roomId, room[a].userId) 
+        socket.emit('joinRoom', room[a]._id, room[a].me);
+        socket.emit('readChat',room[a]._id, room[a].myId) 
 
         $('select').change((e) => {
           a = e.target.selectedIndex
-          socket.emit('joinRoom', room[a].roomId, room[a].participant);
-          socket.emit('readChat',room[a].roomId, room[a].userId)
+          socket.emit('joinRoom', room[a]._id, room[a].me);
+          socket.emit('readChat',room[a]._id, room[a].myId)
         });
 
         $('form').submit(() => {
-          socket.emit('message', room[a].roomId, room[a].userId, $('#m').val());
+          socket.emit('message', room[a]._id, room[a].myId, $('#m').val());
           $('#m').val('');
           return false;
         });
@@ -69,7 +69,7 @@
         });
     
         //채팅방 나가기를 버튼을 클릭했을때
-        socket.emit('leaveRoom', room[a].roomId, room[a].participant);
+        socket.emit('leaveRoom', room[a]._id, room[a].me);
 
         socket.on('leaveRoom', (roomid, name) => {
           $('#messages').append($('<li>').text(name + '    leaved ' + roomid + ' :('));
