@@ -66,7 +66,9 @@ router.post('/:accountname/chatroom',async function(req,res){
 })
 
 router.get('/roomList', async function(req,res) {
-    const rooms = await ChatRoom.find({myId:req.payload.id})
+    const me=await User.findById(req.payload.id)
+    const rooms = await ChatRoom.find({me:me.accountname})
+
     return res.status(200).json({rooms:rooms.map(rooms=>rooms.toChatRoomJSONFor())})
 })
 
