@@ -38,9 +38,8 @@ const leaveRoom=function(socket,io){
     socket.on('leaveRoom',(roomId, name)=>{
         console.log('leaveRoom에 들어왔나요???')
 
-        socket.leave(roomId,()=>{
-            console.log(name+'나갔습니다.')
-        })
+        const a=socket.leave(roomId)
+        console.log(a)
         io.to(roomId).emit('leaveRoom',roomId, name)
     })
 }
