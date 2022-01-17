@@ -21,7 +21,7 @@ const runSocketIo=function(server, mongoose){
         console.log('a user connected')
 
         disconnect(socket)
-        leaveRoom(socket,io)
+        leaveRoom(socket,io,Chat,ChatRoom,Participant)
         joinRoom(socket,io)
         message(socket,io,User,Chat,ChatRoom,Participant)
         readChat(socket,io,Participant,ChatRoom)
@@ -34,12 +34,13 @@ const disconnect =function(socket){
     })
 }
 
-const leaveRoom=function(socket,io){
-    socket.on('leaveRoom',(roomId, name)=>{
-        console.log('leaveRoom에 들어왔나요???')
+const leaveRoom=function(socket,io,Chat,ChatRoom,Participant){
+    socket.on('leaveRoom',async(roomId, name)=>{
+        const chatdelete=await Chat.deleteMany({roomId:roomId})
+        const chatroom=await ChatRoom.deleteMany({_id:roomId})
+        const participant=await Participant.deleteMany({roomId:roomId})
 
-        const a=socket.leave(roomId)
-        console.log(a)
+        
         io.to(roomId).emit('leaveRoom',roomId, name)
     })
 }
