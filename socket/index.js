@@ -36,7 +36,11 @@ const disconnect =function(socket){
 
 const leaveRoom=function(socket,io){
     socket.on('leaveRoom',(roomId, name)=>{
-        socket.leave(roomId)
+        console.log('leaveRoom에 들어왔나요???')
+
+        socket.leave(roomId,()=>{
+            console.log(name+'나갔습니다.')
+        })
         io.to(roomId).emit('leaveRoom',roomId, name)
     })
 }
