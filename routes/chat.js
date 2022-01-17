@@ -33,7 +33,11 @@ router.post('/:accountname/chatroom',async function(req,res){
 
     const allchatroom1=await ChatRoom.find({participant:participants.accountname,me:me.accountname})
     const allchatroom2=await ChatRoom.find({participant:me.accountname,me:participants.accountname})
-    if (allchatroom1.length>=1||allchatroom2.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다."})
+
+    if (allchatroom1.length>=1||allchatroom2.length>=1){
+        if(allchatroom1.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다.",roomId:allchatroom1.map(allchatroom1=>allchatroom1._id)})
+        if(allchatroom2.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다.",roomId:allchatroom2.map(allchatroom2=>allchatroom2._id)})
+    } 
 
     var chatroom = new ChatRoom(req.body.chatroom)
     chatroom.participant=participants.accountname
@@ -78,10 +82,12 @@ router.get('/roomList', async function(req,res) {
 //채팅 내용 보낼때 사용??
 router.get('/:chatroom', async function(req,res){
     const participant=req.chatroom.participant
-    const me=req.payload.id
+    const me=await User.findById(req.payload.id)
+    const meId=me.id
+    const meAccountname=me.accountname
 
     const chatting=await Chat.find({roomId:req.chatroom._id})
-    return res.status(200).json({me:me,participant:participant,chatting})
+    return res.status(200).json({me:meId,terget_username:meAccountname,participant:participant,chatting})
 })
 
 module.exports = router;
