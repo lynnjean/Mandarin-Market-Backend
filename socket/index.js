@@ -36,12 +36,9 @@ const disconnect =function(socket){
 
 const leaveRoom=function(socket,io,Chat,ChatRoom,Participant){
     socket.on('leaveRoom',async(roomId, name)=>{
-        const find=await Chat.find({roomId:roomId})
-        console.log(find)
         const chatdelete=await Chat.deleteMany({roomId:roomId})
         const chatroom=await ChatRoom.deleteMany({_id:roomId})
         const participant=await Participant.deleteMany({roomId:roomId})
-
 
         io.to(roomId).emit('leaveRoom',roomId, name)
     })

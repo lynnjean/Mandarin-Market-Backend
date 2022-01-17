@@ -27,11 +27,13 @@ router.param('accountname',(req,res,next,accountname)=>{
 
 router.post('/:accountname/chatroom',async function(req,res){
     if(req.profile.id===req.payload.id) return res.json({'message':"자신과의 채팅은 할 수 없습니다."})
-    const allchatroom=await ChatRoom.find({participant:req.profile.accountname,me:req.payload.id})
-    if (allchatroom.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다."})
 
     const me=await User.findById(req.payload.id)
     const participants=await User.findById(req.profile.id)
+
+    const allchatroom1=await ChatRoom.find({participant:participants.accountname,me:me.accountname})
+    const allchatroom2=await ChatRoom.find({participant:me.accountname,me:participants.accountname})
+    if (allchatroom1.length>=1||allchatroom2.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다."})
 
     var chatroom = new ChatRoom(req.body.chatroom)
     chatroom.participant=participants.accountname

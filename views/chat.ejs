@@ -15,7 +15,7 @@
     <script>
       let roomlist
       const getRooms = async () =>{
-        roomlist = await (await fetch('http://146.56.183.55:3030/chat/roomList',{
+        roomlist = await (await fetch('http://localhost:3030/chat/roomList',{
           method:"GET",
           headers:{
             "Content-Type":"application/json",
@@ -27,7 +27,7 @@
       const init = async () => {
         await getRooms()
         // const name = prompt('What your name');//room[a].userId
-        var socket = io('http://146.56.183.55:3030');
+        var socket = io('http://localhost:3030');
         let room = roomlist.rooms;
 
         let num = 0;
@@ -72,7 +72,6 @@
         //채팅방 나가기를 버튼을 클릭했을때
 
         socket.on('leaveRoom', (roomid, name) => {
-          console.log('잘 들어왔다!!!!')
           $('#messages').append($('<li>').text(name + '    leaved ' + roomid + ' :('));
         });
       }
