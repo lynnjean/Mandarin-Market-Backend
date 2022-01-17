@@ -21,8 +21,8 @@ const runSocketIo=function(server, mongoose){
         console.log('a user connected')
 
         disconnect(socket)
-        joinRoom(socket,io)
         leaveRoom(socket,io)
+        joinRoom(socket,io)
         message(socket,io,User,Chat,ChatRoom,Participant)
         readChat(socket,io,Participant,ChatRoom)
     });
@@ -31,6 +31,13 @@ const runSocketIo=function(server, mongoose){
 const disconnect =function(socket){
     socket.on('disconnect',()=>{
         console.log('user disconnected');
+    })
+}
+
+const leaveRoom=function(socket,io){
+    socket.on('leaveRoom',(roomId, name)=>{
+        socket.leave(roomId)
+        io.to(roomId).emit('leaveRoom',roomId, name)
     })
 }
 
@@ -58,8 +65,8 @@ const message=function(socket, io, User, Chat, ChatRoom,Participant){
         await chat.save()
 
         await ChatRoom.update({_id:chat.roomId},{lastchat:chat.message, lastReadId:chat._id})
-
-        io.to(roomId).emit('message', chat)
+        // chat["test"]=1
+        io.to(roomId).emit('message',chat)
 
         const participant=await Participant.find({roomId:chat.roomId,userId:{$ne:senduserId}},)
 
@@ -76,13 +83,6 @@ const readChat=function(socket,io,Participant,ChatRoom){
         await Participant.update({roomId:roomId,userId:userId},{notRead:0})
 
         io.to(roomId).emit('readChat',roomId, chatroom.lastReadId)
-    })
-}
-
-const leaveRoom=function(socket,io){
-    socket.on('leaveRoom',(roomId, name)=>{
-        socket.leave(roomId)
-        // io.to(roomId).emit('leaveRoom',roomId, name)
     })
 }
 

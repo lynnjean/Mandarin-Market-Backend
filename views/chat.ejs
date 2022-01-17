@@ -49,6 +49,9 @@
         socket.emit('readChat',room[a].roomId, room[a].userId) 
 
         $('select').change((e) => {
+          socket.emit('leaveRoom', room[a].roomId, room[a].participant);
+          console.log(room[a].roomId,room[a].participant)
+
           a = e.target.selectedIndex
           socket.emit('joinRoom', room[a].roomId, room[a].participant);
           socket.emit('readChat',room[a].roomId, room[a].userId)
@@ -69,9 +72,9 @@
         });
     
         //채팅방 나가기를 버튼을 클릭했을때
-        socket.emit('leaveRoom', room[a].roomId, room[a].participant);
 
         socket.on('leaveRoom', (roomid, name) => {
+          console.log(name+'이 나갔습니다.')
           $('#messages').append($('<li>').text(name + '    leaved ' + roomid + ' :('));
         });
       }

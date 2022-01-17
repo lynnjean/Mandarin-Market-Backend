@@ -27,7 +27,7 @@ router.param('accountname',(req,res,next,accountname)=>{
 
 router.post('/:accountname/chatroom',async function(req,res){
     if(req.profile.id===req.payload.id) return res.json({'message':"자신과의 채팅은 할 수 없습니다."})
-    const allchatroom=await ChatRoom.find({participant:req.profile.accountname})
+    const allchatroom=await ChatRoom.find({participant:req.profile.accountname,me:req.payload.id})
     if (allchatroom.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다."})
 
     const me=await User.findById(req.payload.id)
