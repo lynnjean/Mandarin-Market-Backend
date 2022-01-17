@@ -15,7 +15,7 @@
     <script>
       let roomlist
       const getRooms = async () =>{
-        roomlist = await (await fetch('http://localhost:3030/chat/roomList',{
+        roomlist = await (await fetch('http://http://146.56.183.55/:3030/chat/roomList',{
           method:"GET",
           headers:{
             "Content-Type":"application/json",
@@ -27,7 +27,7 @@
       const init = async () => {
         await getRooms()
         // const name = prompt('What your name');//room[a].userId
-        var socket = io('http://localhost:3030');
+        var socket = io('http://http://146.56.183.55/:3030');
         let room = roomlist.rooms;
 
         let num = 0;
