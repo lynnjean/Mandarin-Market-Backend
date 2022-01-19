@@ -59,6 +59,14 @@ var emailVarlid=async function(req,res,next){
     if(email.length==1) return res.json({'message':'이미 가입된 이메일 주소 입니다.'})
 }
 
+var accountnameVarlid=async function(req,res,next){
+    if(!req.body.user||!req.body.user.accountname) return res.json({'message':'잘못된 접근입니다.'})
+    const allaccountname=await User.find({accountname:req.body.user.accountname},{accountname:1})
+    const accountname=allaccountname.map(allaccountname=>allaccountname.accountname);
+    if(accountname.length==0) return res.json({'message':'사용 가능한 계정ID 입니다.'})
+    if(accountname.length==1) return res.json({'message':'이미 가입된 계정ID 입니다.'})
+}
+
 var update=(req,res,next)=>{
     User.findById(req.payload.id).then(function(user){
         if (!user) return res.status(401).json("존재하지 않는 유저입니다.");
@@ -86,7 +94,6 @@ var refreshAuth=(req,res)=>{
     if (req.headers.authorization && req.headers.refresh.split(' ')[0]==='Token'||
     req.headers.authorization && req.headers.refresh.split(' ')[0]==='Bearer'){
         var refreshToken=req.headers.authorization.split(' ')[1];
-        // let refreshToken=req.body.refreshToken;
 
         if(!refreshToken){
             return res.status(401);
@@ -133,6 +140,8 @@ var userdelete=(req,res)=>{
 
 router.post('/',create);
 router.post('/emailvalid',emailVarlid)
+router.post('/accountnamevalid',accountnameVarlid)
+
 router.post('/login',login);
 router.get('/', list);
 
