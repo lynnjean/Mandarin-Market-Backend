@@ -74,7 +74,7 @@ var unfollow= async (req,res,next)=>{
     req.profile.removeFollower(req.payload.id)
     await User.findByIdAndUpdate(req.payload.id, user)
     await User.findByIdAndUpdate(profileId, req.profile)
-    return res.json({profile:req.profile.toProfileJSONFor()})
+    return res.json({profile:req.profile.toProfileJSONFor(user)})
 }
   
 router.get('/:accountname',auth.optional,account);

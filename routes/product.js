@@ -46,7 +46,6 @@ const userproduct = async function userproduct(req,res,next){
     try {
       const user = await User.findById(req.payload.id)
       const product = await Product.find({author:req.user}).limit(limit).skip(skip).sort({createdAt:'descending'}).populate('author');    
-      console.log(product)
       return res.status(200).json({data:product.length,product:product.map(product=>product.toProductJSONFor(user))})
     } 
     catch (error) {

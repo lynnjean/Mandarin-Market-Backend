@@ -99,7 +99,6 @@ const getFeed = async function getPostByFollowing(req,res){
 }
 
 const removePost = async function removePost(req, res){ 
-  console.log(req.post)
   if(req.payload.id.toString() === req.post.author._id.toString()){
     const user=await User.find({hearts:req.post._id})
     user.map(async user=>{

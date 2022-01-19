@@ -31,8 +31,6 @@ const disconnect =function(socket){
 const joinRoom= function(socket){
     socket.on('joinRoom',(roomId, name)=>{
         socket.join(roomId,()=>{
-            console.log(name+'join a '+roomId)
-            // logger.info(`${roomId}에 들어감`);
             io.to(roomId).emit('joinRoom', roomId, name)
         })
     })

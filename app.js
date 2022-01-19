@@ -92,7 +92,6 @@ app.use((err,req,res,next)=>{
     if(err.name==='TypeError'){
         return res.status(200).json({'message':"잘못된 접근입니다.",'status':200})
     }
-    console.log(err.name)
 
     return next(err);
 })
