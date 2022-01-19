@@ -33,7 +33,7 @@ var followinglist=async(req,res,next)=>{
             skip:skip
           }
         }).then(function(user) {
-            return res.json(user.following.map((user)=>user.toProfileJSONFor()))
+            return res.json(user.following.map((following)=>following.toProfileJSONFor(user)))
           });
       }).catch(next);
 }
@@ -50,7 +50,7 @@ var followerlist=async(req,res,next)=>{
             skip:skip
           }
         }).then(function(user) {
-            return res.json(user.follower.map((user)=>user.toProfileJSONFor()))
+            return res.json(user.follower.map((follower)=>follower.toProfileJSONFor(user)))
           });
       }).catch(next);
 }
