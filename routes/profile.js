@@ -32,12 +32,10 @@ var followinglist=async(req,res,next)=>{
             limit:limit,
             skip:skip
           }
-        }).then(function(user) {
-            return res.json(user.following.map(async (following)=>{
-              const user = await User.findById(req.payload.id)
-              return following.toProfileJSONFor(user)
-            }))
-          });
+        }).then(async function(user) {
+          const me = await User.findById(req.payload.id)
+          return res.json(user.following.map((following)=>following.toProfileJSONFor(me)))
+        });
       }).catch(next);
 }
 
@@ -52,11 +50,9 @@ var followerlist=async(req,res,next)=>{
             limit:limit,
             skip:skip
           }
-        }).then(function(user) {
-            return res.json(user.follower.map(async (follower)=>{
-              const user = await User.findById(req.payload.id)
-              return follower.toProfileJSONFor(user)
-            }))
+        }).then(async function(user) {
+            const me = await User.findById(req.payload.id)
+            return res.json(user.follower.map((follower)=>follower.toProfileJSONFor(me)))
           });
       }).catch(next);
 }
