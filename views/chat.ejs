@@ -31,7 +31,6 @@
         let room = roomlist.rooms;
 
         // let name = user;
-        // console.log(name)
         let num = 0;
 
         const select=document.querySelector("select");
@@ -50,7 +49,6 @@
         $('select').change((e) => {
           a = e.target.selectedIndex
           socket.emit('leaveRoom', room[a].roomId, name);
-          // console.log(room[a].roomId)
           socket.emit('joinRoom', room[a].roomId, name);
         });
     

@@ -111,11 +111,12 @@ var refreshAuth=(req,res)=>{
 }
 
 var searchUser = (req, res)=>{
+    var user = User.findById(req.payload.id)
     var keyword = req.query.keyword
     var options = [{username: new RegExp(keyword)}, {accountname: new RegExp(keyword)}]
     User.find({$or:options}).then(
         (result)=>{
-            res.json(result.map((user)=>{return user.toProfileJSONFor()}))
+            res.json(result.map((searchUser)=>{return searchUser.toProfileJSONFor(user)}))
         }
     )
 }
