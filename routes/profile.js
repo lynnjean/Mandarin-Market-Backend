@@ -64,7 +64,7 @@ var follows= async (req,res,next)=>{
     req.profile.addFollower(req.payload.id);
     await User.findByIdAndUpdate(req.payload.id, user)
     await User.findByIdAndUpdate(profileId, req.profile)
-    return res.json({profile:req.profile.toProfileJSONFor()})
+    return res.json({profile:req.profile.toProfileJSONFor(user)})
 };
 
 var unfollow= async (req,res,next)=>{
