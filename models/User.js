@@ -11,6 +11,7 @@ var UserSchema = new mongoose.Schema({
     accountname:{type:String, unique:true, required:[true, "필수 입력 사항입니다."],match:/^[_.a-zA-Z0-9|s]*$/,index:true},
     intro:{type:String},
     hearts:[{type:mongoose.Schema.Types.ObjectId,ref:'Post'}],
+    isfollow:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
     following:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
     follower:[{type:mongoose.Schema.Types.ObjectId, ref:'User' }],
     hash:{type:String},
@@ -51,7 +52,7 @@ UserSchema.methods.toJoinJson= function(user){
         email:this.email,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image || 'http://146.56.183.55:5050/Ellipse.png'
+        image:this.image || 'http://146.56.183.55:3030/Ellipse.png'
     }
 }
 
@@ -62,7 +63,7 @@ UserSchema.methods.toAuthJson= function(user){
         email:this.email,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image || 'http://146.56.183.55:5050/Ellipse.png',
+        image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
         token:this.generateJWT(),
         refreshToken:this.refreshJWT()
     }
@@ -97,7 +98,8 @@ UserSchema.methods.toProfileJSONFor= function(user){
         username:this.username,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image || 'http://146.56.183.55:5050/Ellipse.png',
+        image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
+        isfollow:user?user.isfollowing(this._id):false,
         following:this.following,
         follower:this.follower,
         followerCount:this.follower.length,
@@ -132,6 +134,7 @@ UserSchema.methods.isfollowing=function(id){
     return this.following.some(function(followId){
         return followId.toString()===id.toString();
     });
+
 }
 
 mongoose.model('User',UserSchema);
