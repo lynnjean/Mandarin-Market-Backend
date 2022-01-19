@@ -139,7 +139,13 @@ var searchUser = async (req, res)=>{
 //         return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요.",'status':'403'})
 //     })
 // }    
-
+async function checkToken(req,res,next) {
+    const user = await User.findById(req.payload.id)
+    const isVaild = user?true:false
+    res.json({
+        isValid:isVaild
+    })
+}
 router.post('/',create);
 router.post('/emailvalid',emailVarlid)
 router.post('/accountnamevalid',accountnameVarlid)
@@ -149,6 +155,7 @@ router.get('/', list);
 
 router.use(auth.required);
 router.put('/',update);
+router.get('/checktoken',checkToken)
 // router.delete('/',userdelete);
 router.get('/searchuser',searchUser);
 router.post('/refresh',refreshAuth);
