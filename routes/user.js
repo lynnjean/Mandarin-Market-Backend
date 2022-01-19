@@ -110,8 +110,9 @@ var refreshAuth=(req,res)=>{
     }return null;
 }
 
-var searchUser = (req, res)=>{
-    var user = User.findById(req.payload.id)
+var searchUser = async (req, res)=>{
+    var user = await User.findById(req.payload.id)
+    console.log(user)
     var keyword = req.query.keyword
     var options = [{username: new RegExp(keyword)}, {accountname: new RegExp(keyword)}]
     User.find({$or:options}).then(
