@@ -93,7 +93,6 @@ UserSchema.methods.ishearts=function(id){
 }
 
 UserSchema.methods.toProfileJSONFor= function(user){
-    // console.log(isfollow.type())
     return {
         _id: this._id,
         username:this.username,
