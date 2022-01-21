@@ -83,7 +83,7 @@ const updatePost = async function updatePost(req, res, next){
   if(req.payload.id.toString() === req.post.author._id.toString()){
       await Post.findByIdAndUpdate(req.post._id,req.body.post)
       const user = await User.findById(req.payload.id)
-      const post = await Post.findById(req.post.id).populate('author')
+      const post = await Post.findById(req.post._id).populate('author')
       return res.json({post: post.toJSONFor(user)})
   }
   return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})

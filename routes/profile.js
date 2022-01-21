@@ -43,16 +43,17 @@ var followerlist=async(req,res,next)=>{
     const limit = req.query.limit ? Number(req.query.limit):10
     const skip = req.query.skip ? Number(req.query.skip):0
 
-    Promise.resolve(req.profile.id ? User.findById(req.profile.id) : null).then(function(user){
-        return user.populate({
+    Promise.resolve(req.profile.id ? User.findById(req.profile.id) : null).then(function(profileUser){
+        return profileUser.populate({
           path: 'follower',
           options: {
             limit:limit,
             skip:skip
           }
-        }).then(async function(user) {
+        }).then(async function(profileUser) {
             const me = await User.findById(req.payload.id)
-            return res.json(user.follower.map((follower)=>follower.toProfileJSONFor(me)))
+            console.log(me)
+            return res.json(profileUser.follower.map((follower)=>follower.toProfileJSONFor(me)))
           });
       }).catch(next);
 }
