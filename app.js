@@ -10,7 +10,8 @@ var fs = require('fs'),
     mongoose = require('mongoose'),
     morgan=require('morgan'),
     multer = require('multer');
-// var ip = require("ip");
+
+const AutoIncrementFactory = require('mongoose-sequence');
 
 var runSocketIo=require('./socket')
 
@@ -19,8 +20,7 @@ var certificate = fs.readFileSync("/etc/letsencrypt/live/mandarin.cf/cert.pem")
 var ca = fs.readFileSync("/etc/letsencrypt/live/mandarin.cf/chain.pem")
 const credentials = { key: privateKey, cert: certificate, ca: ca }
 
-const app = express()
-
+var app=express();
 var server = https.createServer(credentials, app); 
 
 app.set('view engine','ejs');
@@ -38,6 +38,7 @@ db.on('error', console.error.bind(console, 'connection error: '));
 db.once('open', function callback() {
     console.log('db connection');
 });
+const AutoIncrement = AutoIncrementFactory(db);
 
 require('./models/User');
 require('./models/Post');
@@ -52,6 +53,12 @@ require('./config/passport');
 app.use(require('./routes'))
 
 app.use(express.static('uploadFiles'));
+
+runSocketIo(server, mongoose)
+
+app.get('/chatting', function(req,res) {
+    res.render('chat')
+})
 
 // error
 app.use((req,res,next)=>{
@@ -101,6 +108,7 @@ app.use((err,req,res,next)=>{
     if(err.name==='TypeError'){
         return res.status(200).json({'message':"잘못된 접근입니다.",'status':200})
     }
+    console.log(err.name)
 
     return next(err);
 })
@@ -110,10 +118,9 @@ app.use((err,req,res,next)=>{
     return next(err);
 })
 
-runSocketIo(server)
-
 server.listen(5000,()=>{
     var dir='./uploadFiles';
     if(!fs.existsSync(dir)) fs.mkdirSync(dir);
     console.log('start server')
 });
+
