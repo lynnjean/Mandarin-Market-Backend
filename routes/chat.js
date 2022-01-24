@@ -7,26 +7,15 @@ var express=require('express');
 const auth = require('./auth');
 var router=express.Router();
 
-router.get('/chatting',async function(req,res){
-    res.render('chat');
-})
-
 router.use(auth.required) 
 
 router.param('chatroom', async function(req, res, next, chatroomId) {
     ChatRoom.findById(chatroomId).then(function(chatroom) {
+        if(!chatroom) return res.status(404).json({'message':"채팅방이 존재하지 않습니다.",'status':'404'});
         req.chatroom = chatroom;
-
         return next();
       }).catch(()=>{return res.status(404).json({'message':"존재하지 않는 채팅방입니다.",'status':404})});
   });
-
-router.param('user', async function(req, res, next, userId) {
-    const user = await User.findById(userId)
-    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
-    req.user = user
-    return next()
-})
 
 router.param('accountname',(req,res,next,accountname)=>{
     User.findOne({accountname:accountname}).then((user)=>{
@@ -37,12 +26,33 @@ router.param('accountname',(req,res,next,accountname)=>{
 })
 
 router.post('/:accountname/chatroom',async function(req,res){
-    const user=await User.findById(req.payload.id)
-    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
+    if(req.profile.id===req.payload.id) return res.json({'message':"자신과의 채팅은 할 수 없습니다."})
+
+    const me=await User.findById(req.payload.id)
+    const participants=await User.findById(req.profile.id)
+
+    const allchatroom1=await ChatRoom.find({participant:participants.accountname,me:me.accountname})
+    const allchatroom2=await ChatRoom.find({participant:me.accountname,me:participants.accountname})
+
+    if (allchatroom1.length>=1||allchatroom2.length>=1){
+        if(allchatroom1.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다.",roomId:allchatroom1.map(allchatroom1=>allchatroom1._id)})
+        if(allchatroom2.length>=1) return res.json({'message':"이미 만들어진 채팅방 입니다.",roomId:allchatroom2.map(allchatroom2=>allchatroom2._id)})
+    } 
+
     var chatroom = new ChatRoom(req.body.chatroom)
+    chatroom.participant=participants.accountname
+    chatroom.me=me.accountname
+    chatroom.myId=me._id
+    chatroom.image=participants.image; 
+
+    await chatroom.save()
+
     var participant1=new Participant({
         userId:req.payload.id,
+        target_username:participants.username,
         roomId:chatroom._id,
+        participant:me.accountname,
+        image:participants.image,
         roomname:chatroom.roomname,
         notRead:0,
         lastRead:0
@@ -51,28 +61,38 @@ router.post('/:accountname/chatroom',async function(req,res){
     var participant2=new Participant({
         userId:req.profile.id,
         roomId:chatroom._id,
+        target_username:me.username,
+        participant:participants.accountname,
+        image:me.image,
         roomname:chatroom.roomname,
         notRead:0,
         lastRead:0
     })
 
-    await chatroom.save()
     await participant1.save()
     await participant2.save()
     return res.status(200).json({chatroom:chatroom.toChatJSONFor()})
 })
 
-//채팅 목록
 router.get('/roomList', async function(req,res) {
-    const user = await User.findById(req.payload.id)
-    const rooms = await Participant.find({userId:user._id},)
+    const rooms = await Participant.find({userId:req.payload.id},)
     return res.status(200).json({rooms:rooms.map(rooms=>rooms.toParticipantJSONFor())})
 })
 
-//채팅 내용 보낼때 사용
+//채팅 내용 보낼때 사용??
 router.get('/:chatroom', async function(req,res){
-    const chatting=await Chat.find({roomId:req.chatroom._id},)
-    return res.status(200).json(chatting)
+    const participant=req.chatroom.participant
+    const me=await User.findById(req.payload.id)
+    const chatting=await Chat.find({roomId:req.chatroom._id})
+    let target
+    if (req.chatroom.participant===me.accountname){
+        target=await User.find({accountname:req.chatroom.me})
+        return res.status(200).json({me:me._id,accountname:me.accountname,target_username:target.map(target=>target.username),participant:participant,chatting})
+    }
+    else{
+        target=await User.find({accountname:req.chatroom.participant})
+        return res.status(200).json({me:me._id,accountname:me.accountname,target_username:target.map(target=>target.username),participant:participant,chatting})
+    }
 })
 
 module.exports = router;
