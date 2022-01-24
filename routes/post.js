@@ -83,7 +83,7 @@ const updatePost = async function updatePost(req, res, next){
   if(req.payload.id.toString() === req.post.author._id.toString()){
       await Post.findByIdAndUpdate(req.post._id,req.body.post)
       const user = await User.findById(req.payload.id)
-      const post = await Post.findById(req.post.id).populate('author')
+      const post = await Post.findById(req.post._id).populate('author')
       return res.json({post: post.toJSONFor(user)})
   }
   return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
@@ -99,7 +99,6 @@ const getFeed = async function getPostByFollowing(req,res){
 }
 
 const removePost = async function removePost(req, res){ 
-  console.log(req.post)
   if(req.payload.id.toString() === req.post.author._id.toString()){
     const user=await User.find({hearts:req.post._id})
     user.map(async user=>{
@@ -216,15 +215,17 @@ var comment=function(req, res, next) {
 
 var uncomment= async function(req, res, next) {
   const post = await Post.findById(req.post._id)
-  if(req.comment.author.toString() === req.payload.id.toString()){
-      const comment=await Comment.find({_id: req.comment._id}).remove().exec()
-      post.comments.remove(req.comment._id)
-      await Post.findByIdAndUpdate(req.post._id,{comments:post.comments})
-      return res.status(200).json({'message':'댓글이 삭제되었습니다.','status':'200'});
-  } else {
-      res.status(403).json({'message':'댓글 작성자만 댓글을 삭제할 수 있습니다.','status':'403'});
-  }
-};
+  try{
+    if(req.comment.author.toString() === req.payload.id.toString()){
+        const comment=await Comment.find({_id: req.comment._id}).remove().exec()
+        post.comments.remove(req.comment._id)
+        await Post.findByIdAndUpdate(req.post._id,{comments:post.comments})
+        return res.status(200).json({'message':'댓글이 삭제되었습니다.','status':'200'});
+    } else {
+        res.status(403).json({'message':'댓글 작성자만 댓글을 삭제할 수 있습니다.','status':'403'});
+    }}catch{
+       return res.status(400).json({'message':"잘못된 요청입니다.",'status':'400'})}
+  };
 
 const commentReport=(req,res,next)=>{
   User.findById(req.payload.id).then(function(user){

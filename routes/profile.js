@@ -32,9 +32,10 @@ var followinglist=async(req,res,next)=>{
             limit:limit,
             skip:skip
           }
-        }).then(function(user) {
-            return res.json(user.following.map((user)=>user.toProfileJSONFor()))
-          });
+        }).then(async function(user) {
+          const me = await User.findById(req.payload.id)
+          return res.json(user.following.map((following)=>following.toProfileJSONFor(me)))
+        });
       }).catch(next);
 }
 
@@ -42,15 +43,16 @@ var followerlist=async(req,res,next)=>{
     const limit = req.query.limit ? Number(req.query.limit):10
     const skip = req.query.skip ? Number(req.query.skip):0
 
-    Promise.resolve(req.profile.id ? User.findById(req.profile.id) : null).then(function(user){
-        return user.populate({
+    Promise.resolve(req.profile.id ? User.findById(req.profile.id) : null).then(function(profileUser){
+        return profileUser.populate({
           path: 'follower',
           options: {
             limit:limit,
             skip:skip
           }
-        }).then(function(user) {
-            return res.json(user.follower.map((user)=>user.toProfileJSONFor()))
+        }).then(async function(profileUser) {
+            const me = await User.findById(req.payload.id)
+            return res.json(profileUser.follower.map((follower)=>follower.toProfileJSONFor(me)))
           });
       }).catch(next);
 }
@@ -74,7 +76,7 @@ var unfollow= async (req,res,next)=>{
     req.profile.removeFollower(req.payload.id)
     await User.findByIdAndUpdate(req.payload.id, user)
     await User.findByIdAndUpdate(profileId, req.profile)
-    return res.json({profile:req.profile.toProfileJSONFor()})
+    return res.json({profile:req.profile.toProfileJSONFor(user)})
 }
   
 router.get('/:accountname',auth.optional,account);

@@ -46,7 +46,6 @@ const userproduct = async function userproduct(req,res,next){
     try {
       const user = await User.findById(req.payload.id)
       const product = await Product.find({author:req.user}).limit(limit).skip(skip).sort({createdAt:'descending'}).populate('author');    
-      console.log(product)
       return res.status(200).json({data:product.length,product:product.map(product=>product.toProductJSONFor(user))})
     } 
     catch (error) {
@@ -72,13 +71,15 @@ const productInfo=async function (req,res,next){
 }
 
 const productUpdate=async function (req,res,next){
+    try{
     if(req.payload.id.toString() === req.product.author._id.toString()){
         await Product.findByIdAndUpdate(req.product._id,req.body.product)
         const user = await User.findById(req.payload.id)
         const product = await Product.findById(req.product._id).populate('author')
         return res.json({product: product.toProductJSONFor(user)})
-    }
-    return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
+    }}
+    catch{
+    return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})}
 }
 
 const productremove= async function (req,res,next){
