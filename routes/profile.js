@@ -52,7 +52,6 @@ var followerlist=async(req,res,next)=>{
           }
         }).then(async function(profileUser) {
             const me = await User.findById(req.payload.id)
-            console.log(me)
             return res.json(profileUser.follower.map((follower)=>follower.toProfileJSONFor(me)))
           });
       }).catch(next);
