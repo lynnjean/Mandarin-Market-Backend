@@ -18,7 +18,7 @@ ChatRoomSchema.methods.toChatJSONFor= function(){
         lastReadId:this.lastReadId,
         myId:this.myId,
         me:this.me,
-        image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
+        image:this.image || 'http://146.56.183.55:5050/Ellipse.png',
         participant:this.participant,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt
