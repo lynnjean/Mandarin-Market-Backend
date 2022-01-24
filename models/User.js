@@ -52,7 +52,7 @@ UserSchema.methods.toJoinJson= function(user){
         email:this.email,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image || 'https://api.mandarin.cf:5000/Ellipse.png'//    console.log (); 
+        image:this.image || 'https://api.mandarin.cf/Ellipse.png'//    console.log (); 
     }
 }
 
@@ -63,7 +63,7 @@ UserSchema.methods.toAuthJson= function(user){
         email:this.email,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image || 'https://api.mandarin.cf:5000/Ellipse.png',
+        image:this.image || 'https://api.mandarin.cf/Ellipse.png',
         token:this.generateJWT(),
         refreshToken:this.refreshJWT()
     }
@@ -98,7 +98,7 @@ UserSchema.methods.toProfileJSONFor= function(user){
         username:this.username,
         accountname:this.accountname,
         intro:this.intro,
-        image:this.image || 'https://api.mandarin.cf:5000/Ellipse.png',
+        image:this.image || 'https://api.mandarin.cf/Ellipse.png',
         isfollow:user.isfollowing(this._id)?true:false,
         following:this.following,
         follower:this.follower,
