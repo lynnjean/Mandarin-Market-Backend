@@ -10,6 +10,7 @@ var fs = require('fs'),
     mongoose = require('mongoose'),
     morgan=require('morgan'),
     multer = require('multer');
+// var ip = require("ip");
 
 var runSocketIo=require('./socket')
 
@@ -20,7 +21,7 @@ const credentials = { key: privateKey, cert: certificate, ca: ca }
 
 const app = express()
 
-var server = http.createServer(app); 
+var server = https.createServer(credentials, app); 
 
 app.set('view engine','ejs');
 app.set('views','./views');
@@ -111,9 +112,8 @@ app.use((err,req,res,next)=>{
 
 runSocketIo(server)
 
-server.listen(5050,()=>{
+server.listen(5000,()=>{
     var dir='./uploadFiles';
     if(!fs.existsSync(dir)) fs.mkdirSync(dir);
     console.log('start server')
 });
-https.createServer(credentials, app).listen(5000)
