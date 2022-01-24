@@ -3,7 +3,6 @@ var fs = require('fs'),
     methods = require('methods'),
     express = require('express'),
     http = require('http'),
-    https = require("https"),
     cors = require('cors'),
     passport = require('passport'),
     errorhandler = require('errorhandler'),
@@ -13,13 +12,7 @@ var fs = require('fs'),
 
 var runSocketIo=require('./socket')
 
-var privateKey = fs.readFileSync("/etc/letsencrypt/live/mandarin.cf/privkey.pem")
-var certificate = fs.readFileSync("/etc/letsencrypt/live/mandarin.cf/cert.pem")
-var ca = fs.readFileSync("/etc/letsencrypt/live/mandarin.cf/chain.pem")
-const credentials = { key: privateKey, cert: certificate, ca: ca }
-
-const app = express()
-
+var app=express();
 var server = http.createServer(app); 
 
 app.set('view engine','ejs');
@@ -116,4 +109,3 @@ server.listen(5050,()=>{
     if(!fs.existsSync(dir)) fs.mkdirSync(dir);
     console.log('start server')
 });
-https.createServer(credentials, app).listen(5000)
