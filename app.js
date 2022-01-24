@@ -112,7 +112,7 @@ app.use((err,req,res,next)=>{
     return next(err);
 })
 
-runSocketIo(server)
+runSocketIo(server, mongoose)
 
 server.listen(5050,()=>{
     var dir='./uploadFiles';
