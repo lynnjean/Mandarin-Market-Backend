@@ -18,7 +18,7 @@ ParticipantSchema.methods.toParticipantJSONFor= function(){
         userId:this.userId,
         target_username:this.target_username,
         participant:this.participant,
-        image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
+        image:this.image || 'http://146.56.183.55:5050/Ellipse.png',
         roomId: this.roomId,
         roomname:this.roomname,
         notRead:this.notRead,
