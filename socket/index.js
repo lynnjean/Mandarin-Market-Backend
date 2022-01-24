@@ -10,7 +10,7 @@ const runSocketIo=function(server, mongoose){
           credentials: true
         }
       });
-    // var io = socketio(server);
+
     var User = mongoose.model('User')
     var Chat = mongoose.model('Chat')
     var ChatRoom = mongoose.model('ChatRoom');
