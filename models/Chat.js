@@ -18,7 +18,7 @@ ChatSchema.methods.toChatJSONFor= function(){
         _id: this._id, //채팅 개별 id
         roomId:this.roomId,
         participant:this.participant,
-        image:this.image || 'http://146.56.183.55:3030/Ellipse.png',
+        image:this.image || 'http://146.56.183.55:5050/Ellipse.png',
         senduserId: this.senduserId,
         message:this.message,
         notRead:this.notRead,
