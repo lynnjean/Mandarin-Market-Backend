@@ -4,7 +4,7 @@ socketio = require("socket.io");
 const runSocketIo=function(server, mongoose){
     var io = socketio(server, {
         cors: {
-          origin: "http://146.56.183.55:5050/",
+          origin: "http://146.56.183.55:3030/",
           methods: ["GET", "POST"],
           allowedHeaders: ["my-custom-header"],
           credentials: true
