@@ -1,10 +1,10 @@
-var https = require('https'),
+var http = require('http'),
 socketio = require("socket.io");
 
 const runSocketIo=function(server, mongoose){
     var io = socketio(server, {
         cors: {
-          origin: "https://api.mandarin.cf/",
+          origin: "https://146.56.183.55:3030/",
           methods: ["GET", "POST"],
           allowedHeaders: ["my-custom-header"],
           credentials: true
