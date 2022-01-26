@@ -4,13 +4,13 @@ socketio = require("socket.io");
 const runSocketIo=function(server, mongoose){
     var io = socketio(server, {
         cors: {
-          origin: "http://146.56.183.55:3030/",
+          origin: "http://146.56.183.55:5050/",
           methods: ["GET", "POST"],
           allowedHeaders: ["my-custom-header"],
           credentials: true
         }
       });
-    // var io = socketio(server);
+
     var User = mongoose.model('User')
     var Chat = mongoose.model('Chat')
     var ChatRoom = mongoose.model('ChatRoom');
