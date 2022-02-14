@@ -1,14 +1,16 @@
-var mongoose = require('mongoose');
-var Post = mongoose.model('Post');
-var User = mongoose.model('User');
-var Comment = mongoose.model('Comment');
-var Report=mongoose.model('Report');
-var express=require('express');
+const express=require('express');
 const auth = require('./auth');
-const { post } = require('./profile');
-var router=express.Router();
+const postController=require('../controllers/post')
+const heartController=require('../controllers/heart')
+const commentController=require('../controllers/comment')
 
-router.use(auth.required) 
+const mongoose = require('mongoose'),
+Post = mongoose.model('Post'),
+User = mongoose.model('User'),
+Comment = mongoose.model('Comment'),
+Report=mongoose.model('Report');
+
+const router=express.Router();
 
 router.param('post', async function(req, res, next, postId) {
   Post.findById(postId).populate('author').then(function(post) {
@@ -25,39 +27,6 @@ router.param('user', async function(req, res, next, userId) {
   return next()
 })
 
-const createPost = async function createPost(req, res, next) {
-  const user = await User.findById(req.payload.id)
-  if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
-  const post = new Post(req.body.post)
-  if(!req.body.post||(!req.body.post.content&&!req.body.post.image)) return res.status(422).json({'message':'내용 또는 이미지를 입력해주세요.','status':'422'})
-  post.author = user
-  try{
-    await post.save().then(()=>{
-      return res.status(200).json({post:post.toJSONFor(user)})
-    })
-  }
-  catch(error){
-    next;
-  }
-}
-
-const getPosts = async function getPosts(req,res){
-  const limit = req.query.limit ? Number(req.query.limit):10 
-  const skip = req.query.skip ? Number(req.query.skip):0
-  const posts = await Post.find({}).limit(limit).skip(skip).sort({createdAt:'descending'}).populate('author')
-
-  res.status('200').json({
-      data: posts.length,
-      posts,
-  })
-}
-
-const getPostById = async function getPost(req, res, next) {
-  const user = await User.findById(req.payload.id)
-  await req.post.populate('author')
-  return res.status(200).json({post: req.post.toJSONFor(user)})
-}
-
 router.param('accountname',(req,res,next,accountname)=>{
   User.findOne({accountname:accountname}).then((user)=>{
       if (!user) return res.status(404).json({'message':"해당 계정이 존재하지 않습니다.",'status':'404'});
@@ -66,179 +35,44 @@ router.param('accountname',(req,res,next,accountname)=>{
   }).catch(next);
 })
 
-const userPost = async function userPost(req, res, next) {
-  const limit = req.query.limit ? Number(req.query.limit):10 
-  const skip = req.query.skip ? Number(req.query.skip):0
-  try {
-    const user = await User.findById(req.payload.id)
-    const post = await Post.find({author:req.user}).limit(limit).skip(skip).sort({createdAt:'descending'}).populate('author')
-    return res.status(200).json({post:post.map(post=>post.toJSONFor(user))})
-    } 
-  catch (error) {
-      next()
-  }
-}
-
-const updatePost = async function updatePost(req, res, next){
-  if(req.payload.id.toString() === req.post.author._id.toString()){
-      await Post.findByIdAndUpdate(req.post._id,req.body.post)
-      const user = await User.findById(req.payload.id)
-      const post = await Post.findById(req.post.id).populate('author')
-      return res.json({post: post.toJSONFor(user)})
-  }
-  return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
-}
-
-const getFeed = async function getPostByFollowing(req,res){
-  const limit = req.query.limit ? Number(req.query.limit):10 
-  const skip = req.query.skip ? Number(req.query.skip):0
-  const user = await User.findById(req.payload.id)
-  if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'})
-  const posts = await Post.find({ author:{$in: user.following}}).sort({createdAt:'descending'}).limit(limit).skip(skip).populate('author')
-  return res.status(200).json({posts: posts.map(post=>post.toJSONFor(user))})
-}
-
-const removePost = async function removePost(req, res){ 
-  console.log(req.post)
-  if(req.payload.id.toString() === req.post.author._id.toString()){
-    const user=await User.find({hearts:req.post._id})
-    user.map(async user=>{
-      await user.unhearts(req.post._id)
-      await User.findByIdAndUpdate(user._id, user)
-    })
-
-    await Post.findByIdAndDelete(req.post._id,req.body.post)
-    return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
-  }
-  return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요",'status':'403'})
-}
-
-const postReport=(req,res,next)=>{
-  User.findById(req.payload.id).then(function(user){
-    if(!user) return res.status(401).json({'message':'존재하지 않는 유저입니다.','status':'401'});
-    var report = new Report();
-    report.post = req.post._id;
-    report.save()
-    return res.json({report: report.toJSONFor(user)});
-  }).catch(next);
-}
-
-router.post('/', createPost);
-router.get('/', getPosts); 
-router.get('/feed',getFeed);
-router.get('/:post', getPostById);
-router.get('/:accountname/userpost',userPost)
-router.put('/:post', updatePost); 
-router.delete('/:post', removePost); 
-router.post('/:post/report',postReport);
-
-//heart
-var hearton=(req,res,next)=>{
-  var postId=req.post.id;
-  
-  User.findById(req.payload.id).then(function(user){
-      if(!user) return res.status(401).json({'message':'존재하지 않는 유저입니다.','status':'401'});
-
-      return user.heart(postId).then(function(){
-         return req.post.updateHeartCount().then(function(post){
-              return res.json({post:req.post.toJSONFor(user)});
-         });
-      });
-  }).catch(next);
-};
-
-var unheart=(req,res,next)=>{
-  var postId=req.post.id;
-  User.findById(req.payload.id).then(function(user){
-      if (!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
-      
-      return user.unhearts(postId).then(function(){
-         return req.post.updateHeartCount().then(function(post){
-              return res.json({post:req.post.toJSONFor(user)});
-         });
-      });
-  }).catch(next);
-};
-
-router.post('/:post/heart',hearton); //0
-router.delete('/:post/unheart',unheart); //0
-
-//comment
 router.param('comment', function(req, res, next, id) {
-    Comment.findById(id).then(function(comment){
-      req.comment = comment;
-      return next();
-    }).catch(()=>{return res.status(404).json({'message':'댓글이 존재하지 않습니다.','status':'404'})});
-  });
+  Comment.findById(id).then(function(comment){
+    req.comment = comment;
+    return next();
+  }).catch(()=>{return res.status(404).json({'message':'댓글이 존재하지 않습니다.','status':'404'})});
+});
 
-var commentlist=function(req, res, next){
-  const limit = req.query.limit ? Number(req.query.limit):10
-  const skip = req.query.skip ? Number(req.query.skip):0
-  
-  Promise.resolve(req.payload ? User.findById(req.payload.id) : null).then(function(user){
-    return req.post.populate({
-      path: 'comments',
-      populate: {
-        path: 'author'
-      },
-      options: {
-        sort: {
-          createdAt: 'desc'
-        },
-        limit:limit,
-        skip:skip
-      }
-    }).then(function(post) {
-      return res.json({comments: req.post.comments.map(function(comment){
-        return comment.toJSONFor(user);
-      })});
-    });
-  }).catch(next);
-};
+// 토큰 검증
+router.use(auth.required) 
+// 게시글 작성
+router.post('/', postController.createPost);
+// 게시글 목록
+router.get('/', postController.getPosts); 
+// 팔로우한 게시글 목록
+router.get('/feed',postController.getFeed);
+// 게시글 상세
+router.get('/:post', postController.getPostById);
+// 나의 게시글
+router.get('/:accountname/userpost',postController.userPost)
+// 게시글 수정
+router.put('/:post', postController.updatePost); 
+// 게시글 삭제
+router.delete('/:post', postController.removePost); 
+// 게시글 신고
+router.post('/:post/report',postController.postReport);
 
-var comment=function(req, res, next) {
-  User.findById(req.payload.id).then(function(user){
-    if(!user) return res.status(401).json({'message':'존재하지 않는 유저입니다.','status':'401'});
+// 좋아요
+router.post('/:post/heart',heartController.hearton);
+// 좋아요 취소
+router.delete('/:post/unheart',heartController.unheart);
 
-    var comment = new Comment(req.body.comment);
-  
-    comment.post = req.post;
-    comment.author = user;
-    
-    return comment.save().then(function(){
-      req.post.comments.push(comment);
-      return req.post.save().then(function(post) {
-        res.json({comment: comment.toJSONFor(user)});
-      });
-    });
-  }).catch(next);
-};
-
-var uncomment= async function(req, res, next) {
-  const post = await Post.findById(req.post._id)
-  if(req.comment.author.toString() === req.payload.id.toString()){
-      const comment=await Comment.find({_id: req.comment._id}).remove().exec()
-      post.comments.remove(req.comment._id)
-      await Post.findByIdAndUpdate(req.post._id,{comments:post.comments})
-      return res.status(200).json({'message':'댓글이 삭제되었습니다.','status':'200'});
-  } else {
-      res.status(403).json({'message':'댓글 작성자만 댓글을 삭제할 수 있습니다.','status':'403'});
-  }
-};
-
-const commentReport=(req,res,next)=>{
-  User.findById(req.payload.id).then(function(user){
-    if(!user) return res.status(401).json({'message':"존재하지 않는 유저입니다.",'status':'401'});
-    var report = new Report();
-    report.comment = req.comment._id;
-    report.save()
-    return res.json({report: report.toJSONFor(user)});
-  }).catch(next);
-}
-
-router.get('/:post/comments', commentlist); //0
-router.post('/:post/comments', comment); //0
-router.delete('/:post/comments/:comment', uncomment); //0
-router.post('/:post/comments/:comment/report', commentReport); //0
+// 댓글 목록
+router.get('/:post/comments', commentController.commentlist);
+// 댓글 작성
+router.post('/:post/comments', commentController.comment);
+// 댓글 삭제
+router.delete('/:post/comments/:comment', commentController.uncomment); 
+// 댓글 신고
+router.post('/:post/comments/:comment/report', commentController.commentReport);
 
 module.exports = router;

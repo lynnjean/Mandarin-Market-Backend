@@ -15,8 +15,7 @@ const AutoIncrementFactory = require('mongoose-sequence');
 var runSocketIo=require('./socket')
 
 var app=express();
-var server = http.createServer(app); //서버 생성 메소드(createServer)를 제공하며 파라미터로 express를 넘겨줌
-//server 변수에 담은 이유? ttp.createServer() 메소드는 서버를 생성하는 작업을 하고 난 후 생성한 서버 객체를 리턴해줍니다. 생성된 서버를 제어하기 위해 server 변수에 담는 것입니다.
+var server = http.createServer(app); 
 
 app.set('view engine','ejs');
 app.set('views','./views');

@@ -1,154 +1,28 @@
-var mongoose=require('mongoose');
-var express=require('express');
-var passport=require('passport');
-var User=mongoose.model('User');
-var auth=require('./auth');
-var image=require('./image.js');
-var Jwt=require('jsonwebtoken');
+const express=require('express')
+const auth=require('./auth')
+const userController=require('../controllers/user')
+const router=express.Router()
 
-var secret=require('../config').secret;
-var jwt=require('jsonwebtoken');
-var jwt=require('express-jwt');
-const { read } = require('fs');
+// 회원가입
+router.post('/',userController.create);
+// 이메일 검증
+router.post('/emailvalid',userController.emailVarlid)
+// 계정 검증
+router.post('/accountnamevalid',userController.accountnameVarlid)
+// 로그인
+router.post('/login',userController.login);
+// 회원 목록
+router.get('/', userController.list);
 
-var router=express.Router();
- 
-var list= (req,res,next)=>{
-    User.find({}).then((user)=>{
-        return res.json(user);
-    }).catch(next);
-};
-
-var login=(req,res,next)=>{
-    if (!req.body.user.email&&!req.body.user.password) return res.status(422).json("이메일 또는 비밀번호를 입력해주세요.");
-    if (!req.body.user.email) return res.status(422).json("이메일을 입력해주세요.");
-    if (!req.body.user.password) return res.status(422).json("패스워드를 입력해주세요.");
-
-    passport.authenticate('local',{session:false}, (err,user,info)=>{
-        if (err) return next(err);
-        if (user) return res.json({user:user.toAuthJson()})
-        else return res.json(info);
-    })(req,res,next);
-};
-
-var create=function(req,res,next){
-    var user=new User();
-    const regex=new RegExp(/\S+@\S+\.\S+/);
-    if (!req.body.user.accountname||!req.body.user.email||!req.body.user.password||!req.body.user.username) return res.status(422).json({'message':"필수 입력사항을 입력해주세요.",'status':422});
-    if (regex.test(req.body.user.email)===false) return res.status(422).json({'message':'잘못된 이메일 형식입니다.','status':422})
-    if (req.body.user.password.length<6) return res.status(422).json({'message':'비밀번호는 6자 이상이어야 합니다.','status':422})
-
-    user.username=req.body.user.username;
-    user.accountname = req.body.user.accountname;
-    user.email=req.body.user.email;
-    user.intro=req.body.user.intro;
-    user.setPassword(req.body.user.password);
-    //(post)local/image/uploadFile ->(get)local/filename.png
-    user.image=req.body.user.image; 
-    
-    user.save().then(()=>{
-        return res.status(200).json({'message':'회원가입 성공',user:user.toJoinJson(user)})
-    }).catch(next)
-};
-
-var emailVarlid=async function(req,res,next){
-    if(!req.body.user||!req.body.user.email) return res.json({'message':'잘못된 접근입니다.'})
-    const allemail=await User.find({email:req.body.user.email},{email:1})
-    const email=allemail.map(allemail=>allemail.email);
-    if(email.length==0) return res.json({'message':'사용 가능한 이메일 입니다.'})
-    if(email.length==1) return res.json({'message':'이미 가입된 이메일 주소 입니다.'})
-}
-
-var accountnameVarlid=async function(req,res,next){
-    if(!req.body.user||!req.body.user.accountname) return res.json({'message':'잘못된 접근입니다.'})
-    const allaccountname=await User.find({accountname:req.body.user.accountname},{accountname:1})
-    const accountname=allaccountname.map(allaccountname=>allaccountname.accountname);
-    if(accountname.length==0) return res.json({'message':'사용 가능한 계정ID 입니다.'})
-    if(accountname.length==1) return res.json({'message':'이미 가입된 계정ID 입니다.'})
-}
-
-var update=(req,res,next)=>{
-    User.findById(req.payload.id).then(function(user){
-        if (!user) return res.status(401).json("존재하지 않는 유저입니다.");
-
-        if(typeof req.body.user.username!=='undefined'){
-            user.username=req.body.user.username;
-        }
-        if(typeof req.body.user.accountname!=='undefined'){
-            user.accountname=req.body.user.accountname;
-        }
-        if(typeof req.body.user.intro!=='undefined'){
-            user.intro=req.body.user.intro;
-        }
-        if(typeof req.body.user.image!=='undefined'){
-            user.image=req.body.user.image;
-        }
-
-        return User.findOneAndUpdate({_id:req.payload.id},user).then(function(){
-            return res.json({user:user.toProfileJSONFor(user)});
-        })
-    }).catch(next);
-}
-
-var refreshAuth=(req,res)=>{
-    if (req.headers.authorization && req.headers.refresh.split(' ')[0]==='Token'||
-    req.headers.authorization && req.headers.refresh.split(' ')[0]==='Bearer'){
-        var refreshToken=req.headers.authorization.split(' ')[1];
-
-        if(!refreshToken){
-            return res.status(401);
-        }
-
-        Jwt.verify(refreshToken,secret,(error,user)=>{
-            if(error){
-                return res.status(403);
-            }
-            var token=user.generateJWT();
-            res.json({token});
-        });
-        return token;
-    }return null;
-}
-
-var searchUser = (req, res)=>{
-    var keyword = req.query.keyword
-    var options = [{username: new RegExp(keyword)}, {accountname: new RegExp(keyword)}]
-    User.find({$or:options}).then(
-        (result)=>{
-            res.json(result.map((user)=>{return user.toProfileJSONFor()}))
-        }
-    )
-}
-
-var userdelete=(req,res)=>{
-    User.findById(req.payload.id).then(function(user){
-        if (!user) return res.status(401).json("존재하지 않는 유저입니다.");
-
-        if(req.payload.id.toString() === user.id.toString()){
-            User.findById(user.follower).then((follower)=>{
-                follower.unfollow(req.payload.id)                
-                console.log(follower)
-                User.findByIdAndUpdate(follower.id,follower)
-                console.log(follower)
-            })
-            value=user.userDelete(user.id)
-            if(value) return res.status(200).json({'message':"삭제되었습니다.",'status':'200'})
-        }
-        return res.status(403).json({'message':"잘못된 요청입니다. 로그인 정보를 확인하세요.",'status':'403'})
-    })
-}    
-
-router.post('/',create);
-router.post('/emailvalid',emailVarlid)
-router.post('/accountnamevalid',accountnameVarlid)
-
-router.post('/login',login);
-router.get('/', list);
-
+// 토큰 검증
 router.use(auth.required);
-router.put('/',update);
-router.delete('/',userdelete);
-router.get('/searchuser',searchUser);
-router.post('/refresh',refreshAuth);
+// 회원 정보 수정
+router.put('/',userController.update);
+// 회원 정보 삭제(구현 완료되지 않음)
+router.delete('/',userController.userdelete);
+// 계정, 유저이름 검색
+router.get('/searchuser',userController.searchUser);
+// 리프레쉬 토큰 검증
+router.post('/refresh',userController.refreshAuth);
 
 module.exports = router;
